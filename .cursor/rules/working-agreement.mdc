@@ -1,0 +1,579 @@
+---
+description: Working agreement — Karpathy behavioral guidelines and Rules 0-7 for git, commits, PRs, checkpoints, docs and tests
+alwaysApply: true
+---
+
+<!-- GENERATED FILE — do not edit directly. Source: CLAUDE.md, skills/, rules/. Regenerate with scripts/generate-configs.sh -->
+
+# Working agreement
+
+## Karpathy behavioral guidelines
+
+Guidelines to reduce common LLM coding mistakes. They bias toward caution over
+speed — for trivial tasks, use judgment.
+
+**Think before coding.** State assumptions explicitly; if uncertain, ask. If
+multiple interpretations exist, present them — don't pick silently. If a simpler
+approach exists, say so. If something is unclear, stop and name what's confusing.
+
+**Simplicity first.** Minimum code that solves the problem. No features beyond
+what was asked, no abstractions for single-use code, no configurability that
+wasn't requested, no error handling for impossible scenarios. If you write 200
+lines and it could be 50, rewrite it.
+
+**Surgical changes.** Touch only what you must. Don't improve adjacent code,
+don't refactor what isn't broken, match existing style even if you'd do it
+differently. Remove what *your* change orphaned; leave pre-existing dead code
+alone and mention it instead. Every changed line traces directly to the request.
+
+**Goal-driven execution.** Turn tasks into verifiable goals: "fix the bug" →
+"write a test that reproduces it, then make it pass". For multi-step work, state
+the plan as step → verification, then loop until verified. Strong success
+criteria let you loop independently; weak ones ("make it work") force
+constant clarification.
+
+These are working if: fewer unnecessary changes in diffs, fewer rewrites from
+overcomplication, and clarifying questions arriving before implementation rather
+than after mistakes.
+
+---
+
+## Rule 0 — Language
+
+**Everything that lands in the repository is written in English. The conversation
+is not.** Talk to the user in whatever language they're using (PT or EN) and
+switch when they switch.
+
+English covers code, identifiers, comments, commits, branches, PR descriptions,
+tests, logs, internal error messages, TODOs, and every `.md` in the repo.
+
+**The one exception is user-facing content**: i18n files, UI copy, on-screen
+validation messages, transactional e-mail. The test is who reads it — *a
+developer or an agent reads English; a customer reads the product's language.*
+An error string that only appears in a log is English; the same error in a toast
+is product language.
+
+- Never mix languages inside an identifier (`getUsuario`, `calcularTVL`).
+- Brazilian domain terms with no clean equivalent stay untranslated: `CNPJ`,
+  `NF-e`, `Simples Nacional`, `Pix`. Acronyms keep canonical casing: `TVL`, `API`.
+- In a file that already uses Portuguese identifiers, match the existing style —
+  Surgical Changes wins. Mention the inconsistency, don't rename unilaterally.
+
+---
+
+## Rule 1 — Branch from a synced base
+
+```bash
+git checkout dev              # or main — confirm which is the actual base
+git pull
+git checkout -b @tpa/feat/vendor-creation-endpoint
+```
+
+**Naming:** `@tpa/<type>/<short-kebab-case-description>`, where `<type>` is one
+of `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `style`, `perf`, `build`,
+`ci`, and the description names the plan, not the implementation (3–5 words, no
+dates, no ticket-speak).
+
+One type per branch; if a `fix` grows into a `feat`, that's a signal it should
+have been two. The branch type doesn't constrain commit types inside it.
+`git pull` before `git checkout -b`, every time — branching from an unsynced base
+is how work gets silently reverted.
+
+---
+
+## Rule 2 — One logical change per commit
+
+Every commit contains **exactly one logical change**, and **no commit leaves the
+tree half-changed**. In practice this usually means one file: if three files are
+staged, the default assumption is three separate changes — split them.
+
+The exception is a change that is incoherent when split: a migration and the
+entity it maps, a rename and the imports it breaks, a new export and the index
+that re-exports it. Those land in one commit, because a commit that references
+something it didn't include breaks `git bisect` and can't be reverted on its own.
+
+**The test before staging:** does anything staged here depend on a file that was
+left out? If reverting this commit alone would force reverting the next one too,
+they were always a single commit.
+
+Never `git add .` or `git add -A`. Stage explicit paths, every time.
+
+**Before every commit:**
+- [ ] `git status` shows only the paths this change requires
+- [ ] Every staged file traces to the same logical change
+- [ ] No staged change depends on a file left out of this commit
+
+The build and test suite are **not** run per commit — that's the PR precondition,
+once per branch. This checklist catches the half-change by reading the diff, not
+by running anything.
+
+**Message format:** `<type>(<scope>): <summary>`, imperative, ≤72 chars, no
+trailing period. Optional body explains *why*, never *what*. Scope is the file
+name for single-file commits, the module or feature name when a commit
+legitimately spans more.
+
+```
+feat(vendor.controller.ts): add POST endpoint for vendor creation
+refactor(vendor): rename VendorDto to CreateVendorDto across callers
+```
+
+---
+
+## Rule 3 — What never gets committed
+
+The repository holds the code and the context needed to understand and run it:
+source, tests, migrations, build config, `README.md`, architecture notes, API
+contracts, convention files, and `.env.example` with fake values.
+
+**Never committed:**
+
+- **Secrets, without exception.** Every `.env*` variant except `.env.example`.
+  API keys, tokens, `*.pem`, `*.key`, service-account JSON, `credentials.json`,
+  dumps with real data.
+- **Planning artifacts.** Plans, task breakdowns, checklists, scratchpads,
+  session notes, agent transcripts — including `STATUS.md`.
+- Local noise: `node_modules/`, `dist/`, `build/`, `.venv/`, `coverage/`,
+  `.DS_Store`, IDE folders, `*.log`.
+
+**The test when in doubt:** does a new developer cloning this repo need this file
+to understand, run, or modify the code? If it only describes how the work was
+organized, it stays out. A repo's own `CLAUDE.md` or `.claude/rules/` are shared
+conventions, same category as `CONTRIBUTING.md` — those do get committed.
+
+Enforcement lives in `.gitignore`, not in memory. Before the first commit on any
+repo, confirm it covers `.env*` (with `!.env.example`), `*.pem`, `*.key`,
+`plans/`, `*.plan.md`, `STATUS.md`, and the local noise above.
+
+**If something forbidden was already committed:** `git rm --cached <path>`, add
+it to `.gitignore`, commit both separately. Untracking removes it from future
+commits, **not from history** — if a real credential was pushed, rotate it.
+
+---
+
+## Rule 4 — Pull requests
+
+**Generate a PR description only when explicitly asked** ("gera o PR", "bora
+mergear", "ready to merge"). Never after a commit, never as a default.
+
+When asked, follow the PR message conventions in the appendix: conflict check, build and
+test verification, then the description.
+
+**Always, regardless of these conventions:** never merge the PR, never push to the base
+branch, never rebase an open branch, and never `git push` without the user
+saying so.
+
+---
+
+## Rule 5 — Session checkpoints
+
+Write or update `STATUS.md` when a plan step completes, when ~6 commits have
+landed since the last checkpoint, before any destructive operation, when work is
+about to pause, when a blocker appears, or when the user says "checkpoint" /
+"pausa" / "salva aí". Not on a timer. Follow the session checkpoint conventions in the appendix.
+
+On resume, read `STATUS.md` before touching code, and never auto-continue a
+fix-and-validate loop the user didn't explicitly ask to continue.
+
+---
+
+## Rule 6 — Documentation
+
+**Every implementation is documented, in the same branch and the same PR, in its
+own commit.** The document is named after the feature and lives in a `docs/`
+folder inside its module: `server/src/modules/vendor/docs/vendor-creation.md`.
+A PR that ships an implementation without touching the corresponding feature
+document is incomplete. Follow the feature documentation conventions in the appendix when writing or updating one.
+
+**Update, never append.** The document describes the code as it is now, not a log
+of what happened to it. No changelog, no dates, no "previously the behavior was
+X" — when behavior changes, the old sentence is rewritten.
+
+---
+
+## Rule 7 — Tests
+
+**A behavioral change ships with a test that fails without it.** Mandatory for:
+bug fixes (write the failing test first, always), new behavior with decision
+logic, formulas and derived values, anything with an external contract.
+
+Not required for config changes, dependency bumps, formatting, copy edits, or
+pass-throughs with no logic — say so in the PR instead of pretending otherwise.
+
+Detailed conventions: test-file conventions and notebook/SQL/pipeline
+conventions are covered separately below (auto-attached by glob where
+the tool supports it).
+
+---
+
+## No fabrication
+
+Applies to the PR test plan, `STATUS.md`, and feature documentation alike:
+**never claim something was verified without having run it and read the output.**
+Never document behavior that wasn't implemented, never cite a measurement that
+wasn't measured, never check a box for something that wasn't exercised. What
+wasn't tested stays visible as unchecked, with a reason.
+
+---
+
+## Quick reference
+
+| Trigger | Action |
+|---|---|
+| Writing anything into the repo | English. Product language only for user-facing copy |
+| Starting a feature | `git checkout <base>` → `git pull` → `git checkout -b @tpa/<type>/<desc>` |
+| Ready to commit | Stage explicit paths for one logical change → `type(scope): summary` |
+| Fixing a bug | Failing test first → fix → same PR |
+| About to stage | Never `.env`, plans, or `STATUS.md` |
+| Forbidden file tracked | `git rm --cached` → `.gitignore` → rotate if real |
+| User asks for the PR | Follow PR message conventions (appendix) |
+| Plan step done / pause / risky op / "checkpoint" | Follow session checkpoint conventions (appendix) |
+| Any implementation | Update the feature doc, own commit — follow feature-doc conventions (appendix) |
+| Conflict resolved, build green | Report and stop. Push only on the user's word |
+| Resuming a session | Read `STATUS.md` first, before any code |
+
+---
+
+## Appendix: on-demand conventions
+
+These were separate, on-demand skills in Claude Code. There is no skill-loading mechanism here, so follow them directly whenever the rules above point to them.
+
+## PR message
+
+Produce a complete PR description covering the **full branch diff**, not just the
+last commit. Two checks run first, in order — a description for a branch that
+doesn't merge cleanly or doesn't build describes a state that can't ship.
+
+### Check 1 — Conflicts against the base
+
+```bash
+git fetch origin
+git merge-tree --write-tree origin/dev HEAD    # or origin/main — the actual base
+```
+
+Clean → say so in one line, continue to check 2.
+
+Conflicts → resolve them **inside the feature branch**, so the PR stays open and
+becomes mergeable:
+
+```bash
+git merge origin/dev
+# resolve the conflicting hunks
+git add <resolved files>
+git commit                # merge commit — an exception to Rule 2, like the incoherent-split case
+```
+
+- **Never integrate the branch into the base.** `git switch dev && git merge
+  <branch>`, `git push origin HEAD:dev`, and merging the PR are forbidden,
+  always, no matter how clean the result looks. Merging is the user's action.
+- Bringing `origin/dev` *into* the feature branch is not integration — the base
+  is untouched locally and remotely. That is the allowed direction.
+- Resolve only the conflicting hunks. A conflict is not an opening to refactor
+  the incoming code.
+- Never resolve by taking one side wholesale (`--ours` / `--theirs`) without
+  reading both. If the correct resolution isn't obvious, `git merge --abort` and
+  ask.
+- **Report every resolution before moving on**, one line per conflict: what each
+  side was doing, what was kept. A merge commit's diff is hidden by default in
+  most review tools, so an unreported resolution is one nobody reviewed.
+- After resolving, check 2 is **mandatory**. Git flags textual overlap only; a
+  rename on the base that breaks a caller on the branch merges clean and fails at
+  build.
+- **Never rebase an open PR.** It rewrites history, needs a force push, and drops
+  review comments. Merge commits only.
+- If `merge-tree` isn't available (Git < 2.38), report that instead of falling
+  back to a real merge with `--abort` afterwards.
+
+### Check 2 — Does it still build and pass?
+
+Run the project's verification command on the branch as it stands. **When a test
+suite exists it is part of that command** — a green build with a red suite is not
+a passing check.
+
+| Project type | Verification |
+|---|---|
+| TypeScript / Node | `npm run build` (or repo equivalent), typecheck if separate, plus `npm test` |
+| Python service | import the package, run the entrypoint's `--help`, plus the test suite |
+| Data pipeline / ETL | run end-to-end on the sample or fixture dataset, never on production data |
+| Notebook analysis | `jupyter nbconvert --execute` from a clean kernel, top to bottom |
+| Library / package | build the distributable and run the test suite |
+
+Passes → one line, continue. Fails → report the failing command and the actual
+error output, and **do not fix it unless asked**.
+
+Both checks become test plan lines reflecting what was actually observed.
+
+**Pushing is gated.** After resolving and building green, report the state and
+stop. `git push` happens only when the user says so.
+
+### The description
+
+The diff already shows which files changed. The description explains **what the
+behavior is now**, **why it changed**, and **how it was verified**. Describe the
+system, not the filesystem.
+
+Two targets, in order: someone who reads only the Summary must know what changed
+and what it affects; someone who reads the whole thing must be able to predict
+what the app does without opening the diff.
+
+```markdown
+## Summary
+<1-3 sentences: what the system does now that it didn't before. Then one bullet
+per behavioral change — not per file.>
+
+* <behavioral change, one line>
+
+## Why
+<conditional — the state before this PR and what was broken, missing or awkward.
+Omit when the Summary makes it obvious.>
+
+## Behavior
+<One subsection per surface or flow touched. Decision logic as a numbered
+resolution list matching the code exactly, including the fallback. State what is
+NOT affected. Mechanics go in the feature doc — link, don't inline.>
+
+## Test plan
+- [x] <scenario → observed outcome>
+- [ ] <not covered → why>
+```
+
+Conditional sections, appended in this order when they apply: `## Screenshots`
+(UI only, before/after pairs labeled with the state shown); `## Breaking changes`
+(what breaks, who's affected, exact migration steps — one section, not two);
+`## Notes` (scope boundaries, follow-ups, branch dependencies, rollback).
+
+#### Rules
+
+- **Summary bullets describe behavior, not files.** "Redirect to `/projects`
+  after a successful worksheet submit", not "modified `worksheet.tsx`".
+- **Behavior is the core section.** Non-trivial decision logic appears as an
+  explicit ordered fallback chain matching the code exactly — five resolution
+  steps in the code means five numbered lines. State what stays unchanged: that's
+  what stops a reviewer assuming regressions.
+- **Nothing is claimed that isn't in the diff.** Every route, field, flag and
+  behavior mentioned must exist in the branch's changes. No performance claim
+  without a measurement, no coverage number not produced by a run.
+- **Test plan is granular, one line per scenario**, written as `scenario →
+  observed outcome`. Not "tested the submit flow" — one line per case actually
+  exercised, including negative checks.
+- **Check boxes as tests are run**, not upfront. Every `- [x]` corresponds to
+  something verified in the conversation.
+- **Unchecked boxes are part of the contract.** What wasn't tested stays as
+  `- [ ]` with a reason. A PR that hides what wasn't covered is worse than one
+  that admits it.
+- English, senior-dev tone. Code identifiers in backticks. No emoji, no marketing
+  language (`enterprise-grade`, `robust`, `seamless`), no summary of the summary.
+- Omit conditional sections that don't apply rather than writing "N/A".
+
+#### Length budget
+
+A briefing, not a spec. It scales with behavioral changes, not diff size.
+
+- **Behavior describes observable outcomes.** Cell addresses, row capacities,
+  internal formula strategies, class names and file layout belong in the feature
+  document. If a reviewer can't verify a claim by using the app or calling the
+  endpoint, it's implementation — link to the doc instead.
+- **Say each thing once.** If Why and Summary explain the same decision, Summary
+  keeps the one-liner and Why keeps the rationale.
+- **Test plan lines don't re-explain Behavior.**
+- Dependency pins and build tooling belong in the commit body, not Notes — unless
+  they change how someone runs the project.
+- Past ~80 lines, the excess is almost always implementation detail. Move it to
+  the feature doc, link to it.
+
+## Session checkpoint
+
+AI sessions have a usage limit and can cut off without warning. A checkpoint is
+cheap; losing an afternoon isn't.
+
+### What to do, in order
+
+1. **Commit any uncommitted work**, following Rule 2 — one logical change per
+   commit. If unrelated changes are dirty at the same time, commit each
+   separately, in a sensible order. Never leave uncommitted work on the table
+   when a session might end.
+
+2. **Write or overwrite `STATUS.md`** at the project root, using the template
+   below.
+
+3. **Notify, don't repeat.** If the user is away, send a short status line
+   (done / in-progress + one line). No second notification if nothing changed.
+
+### Template
+
+```markdown
+# Status — <feature/branch name>
+
+**Last updated:** <date/time>
+**Branch:** <branch name>
+
+## Where it stopped
+<one paragraph, plain language, what was just finished>
+
+## What's left
+- [ ] <next step>
+- [ ] <next step>
+
+## Resume command
+<exact command or exact prompt to run next — copy-pasteable, no placeholders>
+
+## Blockers
+<anything waiting on the user, or "None">
+```
+
+### Size budget
+
+`STATUS.md` exists to make the *resume* cheap. Reading it must be cheaper than
+re-reading the conversation or re-scanning the repo.
+
+- **40 lines maximum.** If it doesn't fit, "What's left" is too granular —
+  collapse it.
+- **Overwrite, never append.** No history, no changelog of past checkpoints, no
+  "previously completed". Only the current state matters; the git log holds the
+  history.
+- No code blocks except the resume command.
+- No restating what's already in commit messages.
+
+### Hard constraints
+
+- **`STATUS.md` is never committed.** It's a local, disposable note. Add it to
+  `.gitignore` the first time it's created (`echo "STATUS.md" >> .gitignore`, as
+  its own commit). It should never appear in a diff, a commit, or a PR.
+- **Never fabricate progress.** Every line reflects what was actually done and
+  verified.
+- **Never auto-resume a fix-and-validate loop.** A checkpoint is a save point,
+  not a green light to keep iterating unsupervised. Only continue work the user
+  explicitly asked to continue.
+- **On resume, read `STATUS.md` first**, before touching any code.
+
+## Feature documentation
+
+The PR explains a change to someone reviewing it today. This explains the system
+to someone reading it in six months — including an agent picking up the codebase
+cold. Different artifacts, different lifespans, and the second is what keeps
+implementation detail out of the first.
+
+This is not a planning artifact. **Documentation describes how the code works; a
+plan describes how the work was organized.** The first is committed, the second
+never is.
+
+### One document per feature
+
+Named after the feature, kebab-case, not after the module or the file layout —
+so finding it means guessing the feature name, not walking the directory tree.
+No dates, no ticket numbers, no `v2`, no `-refactor` suffix.
+
+```
+server/src/modules/business-case/docs/business-case-export.md
+server/src/modules/project/docs/project-access-scoping.md
+docs/architecture/<topic>.md                          # cross-module concerns only
+```
+
+Never a single growing `docs/notes.md`, never a catch-all module document.
+
+**A new document is justified by a new feature, not by a new commit.** A new
+fallback branch, a new validation, a new endpoint on an existing surface all edit
+the document that already covers it. Only genuinely new capability gets a new
+file. If a change spans two features, both documents are updated — each in its
+own commit.
+
+### Structure
+
+Four sections are mandatory. `Surface` and `Data shapes` are **conditional**:
+write them only when there is no generated contract to point at. When the module
+publishes OpenAPI, a `.proto`, a generated client or exported types, link to it
+and document only what the generated artifact can't express — auth, who can call
+what, units and scales, nullability the type says nothing about. Duplicating a
+generated contract by hand is the fastest way to end up confidently wrong.
+
+```markdown
+# <Feature name>
+
+<One or two lines: what this covers and who it's for. State plainly that it
+describes how the feature works now — not how it was built.>
+
+## What this is                                          [mandatory]
+<2-4 sentences: what it does and where it sits in the system. Then the
+invariants — the two or three facts that govern everything else.>
+
+## Surface                                               [conditional]
+<Only when no generated contract exists. Base path, auth mechanism, table of
+every route with method, path, who can call it, what it returns. For a library:
+every exported function with its signature and contract.>
+
+## Data shapes                                           [conditional]
+<Only when no generated types exist. Exact payloads as annotated code blocks
+with real values. Mark optional, server-derived, nullable fields. Regardless of
+generation, always state the scale and unit of every number.>
+
+## Rules and behavior                                    [mandatory]
+<Validation rules, resolution orders and fallback chains, state transitions,
+formulas exactly as the code computes them, including rounding mode and edge
+cases. Enumerate case-by-case outcomes in a table.>
+
+## What this does NOT do                                 [mandatory]
+<What a reader will assume and be wrong about. Fields that look calculated but
+aren't. Values that look like they'd update and don't. Endpoints that exist for
+a sibling feature but not this one.>
+
+## Gotchas                                               [mandatory]
+<Each one as: symptom → cause → fix. Written from the mistakes actually made
+while building the feature. If it's empty, either the feature was trivial or the
+mistakes weren't recorded.>
+
+## Setup                                                 [conditional]
+<Env vars, external files, seeds, anything needed to run this locally.>
+```
+
+### Depth standard
+
+The bar: **a competent developer who has never seen this code can implement
+against the feature, correctly, without reading the source and without asking
+questions.**
+
+- **Exhaustive over representative, exact over approximate.** Every enum value,
+  not "the main ones" — a partial list is worse than none, because the reader
+  trusts it. Not "rounds the result" but which rounding, with the boundary case.
+- **Name the failure, not just the rule.** "Send only editable fields" is a rule.
+  "Re-sending the object you got from GET returns 400, because
+  `forbidNonWhitelisted` is on" is what saves someone an hour.
+- **Document deliberate inconsistencies as deliberate, and state the differences
+  from the sibling feature.** When two parts look symmetric but aren't, that
+  asymmetry is the most valuable thing in the document — and it's what stops
+  someone "fixing" an intentional 403.
+
+Length follows the feature. Density is the constraint, not word count.
+
+### Keeping it current
+
+The document describes the present and carries no trace of the change that
+produced it. None of these belong in it, ever:
+
+- "NEW", "changed", "recently added", "previously the behavior was X"
+- Migration notes, "what changed for the frontend"
+- Dates, sprint names, ticket numbers, version markers
+- Titles framed as an event ("What changed in the API") instead of a subject
+
+A reader six months from now must not be able to tell which parts were added
+when. That's what git history is for.
+
+### Rules
+
+- **Update, never append.** When behavior changes, the sentence describing the
+  old behavior is rewritten, not supplemented.
+- **Same branch, same PR.** Documentation is not a follow-up. A PR that ships an
+  implementation without touching the feature document is incomplete.
+- **Its own commit**: `docs(<feature>.md): <what changed>`. This wins over Rule
+  2's revert test, deliberately: reverting the code commit alone leaves a
+  document describing behavior that no longer exists, and that is accepted. A
+  stale sentence is a cheap failure; a commit mixing implementation and prose is
+  a permanent one — and in practice the revert unit is the PR's merge commit,
+  which carries both.
+- **The PR links here instead of repeating this.** When a Behavior subsection
+  starts explaining mechanics, cut them into this document and leave a link.
+- **No fabrication.** Every statement must be true of the code as committed.
+  Never document intended behavior that wasn't implemented.
+- **Stale is worse than absent**, because it's trusted. If a change makes an
+  existing statement wrong, fixing that statement is part of the change, not
+  optional cleanup.
+- Written in English (Rule 0). No preamble, no "in this document we will
+  explore".
