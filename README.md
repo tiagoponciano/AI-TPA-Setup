@@ -1,8 +1,9 @@
-# claude-config
+# AI-TPA-Setup
 
-Personal Claude Code configuration: working agreement, path-scoped rules,
-skills, and git guardrails. Symlinked into `~/.claude/` so it applies to every
-project on the machine.
+This repository organizes every rule TPA uses in development and work:
+working agreement, path-scoped rules, skills, git guardrails, and the
+attribution policy — all in one place, symlinked into `~/.claude/` so it
+applies to every project on the machine.
 
 `CLAUDE.md`, `skills/` and `rules/` are also the source of truth for two
 derived, generated configs that adapt the same working agreement for Cursor
@@ -12,7 +13,7 @@ and Codex — neither has skills or hooks, so see
 ## Layout
 
 ```
-claude-config/
+AI-TPA-Setup/
 ├── CLAUDE.md                     → ~/.claude/CLAUDE.md        (every session)
 ├── rules/
 │   ├── tests.md                  → ~/.claude/rules/           (when touching test files)
@@ -22,10 +23,11 @@ claude-config/
 │   ├── session-checkpoint/SKILL.md
 │   └── feature-doc/SKILL.md
 ├── hooks/
-│   └── git-guardrails.sh         → ~/.claude/hooks/           (blocks, doesn't advise)
+│   ├── git-guardrails.sh         → ~/.claude/hooks/           (blocks, doesn't advise)
+│   └── commit-msg                → strips AI attribution from every commit
 ├── settings.json                 → merge into ~/.claude/settings.json
 ├── scripts/
-│   └── generate-configs.sh       → generates the two files below
+│   └── generate-configs.sh       → generates the two entries below
 ├── AGENTS.md                     → Codex CLI reads this at the project root
 └── .cursor/rules/
     ├── working-agreement.mdc     → alwaysApply, mirrors CLAUDE.md + skills
@@ -36,22 +38,25 @@ claude-config/
 ## Install
 
 ```bash
-git clone git@github.com:<user>/claude-config.git ~/dev/claude-config
-cd ~/dev/claude-config
+git clone git@github.com:<user>/AI-TPA-Setup.git ~/dev/AI-TPA-Setup
+cd ~/dev/AI-TPA-Setup
 mkdir -p ~/.claude
 
-ln -sfn ~/dev/claude-config/CLAUDE.md ~/.claude/CLAUDE.md
-ln -sfn ~/dev/claude-config/rules     ~/.claude/rules
-ln -sfn ~/dev/claude-config/skills    ~/.claude/skills
-ln -sfn ~/dev/claude-config/hooks     ~/.claude/hooks
-chmod +x ~/dev/claude-config/hooks/git-guardrails.sh
+ln -sfn ~/dev/AI-TPA-Setup/CLAUDE.md ~/.claude/CLAUDE.md
+ln -sfn ~/dev/AI-TPA-Setup/rules     ~/.claude/rules
+ln -sfn ~/dev/AI-TPA-Setup/skills    ~/.claude/skills
+ln -sfn ~/dev/AI-TPA-Setup/hooks     ~/.claude/hooks
+chmod +x ~/dev/AI-TPA-Setup/hooks/git-guardrails.sh ~/dev/AI-TPA-Setup/hooks/commit-msg
+
+# git hook — strips AI attribution from every commit, in every repo
+git config --global core.hooksPath ~/.claude/hooks
 ```
 
 `settings.json` is **not** symlinked — Claude Code writes to it (the auto-memory
-toggle, for one). Merge the `hooks` block into the existing file by hand, or
-create it if there isn't one.
+toggle, for one). Merge the `hooks` and `attribution` blocks into the existing
+file by hand, or create it if there isn't one.
 
-`jq` is required by the hook: `brew install jq` on macOS,
+`jq` is required by the `git-guardrails.sh` hook: `brew install jq` on macOS,
 `apt-get install jq` on Debian and Ubuntu.
 
 ## Verify
@@ -75,12 +80,13 @@ echo $?    # expect 2
 |---|---|---|
 | Conventions and judgment | `CLAUDE.md`, rules, skills | Guidance — Claude reads and follows, without hard compliance |
 | Destructive git actions | `hooks/git-guardrails.sh` | Deterministic — runs before every matching Bash call |
+| AI attribution in commits | `hooks/commit-msg` + `settings.json` | Deterministic — see [Attribution](#attribution) |
 
-The hook fires before any permission-mode check, so it holds even under
+The hooks fire before any permission-mode check, so they hold even under
 `--dangerously-skip-permissions`. Hooks can tighten restrictions, never loosen
 them.
 
-## What the hook blocks
+## What the git-guardrails hook blocks
 
 - `git add .`, `git add -A`, `git add --all`, `git add *`
 - staging any `.env` variant except `.env.example`, any `*.pem` or `*.key`, and `STATUS.md`
@@ -91,10 +97,30 @@ them.
 
 Everything else passes through untouched.
 
+## Attribution
+
+Three layers, because the setting alone is unreliable:
+
+1. `CLAUDE.md` Rule 2 — the rule itself: no AI credit in commits or PRs.
+2. `settings.json` `attribution: { commit: "", pr: "", sessionUrl: false }` —
+   turns off the default trailer and the `Claude-Session:` link.
+3. `hooks/commit-msg` — strips `Co-Authored-By: Claude`, `Co-authored-by:
+   Cursor`, `Generated with ...` and `Claude-Session:` from every commit
+   message, whoever wrote it. Human co-author trailers are preserved.
+
+Layer 3 exists because layers 1 and 2 are not guaranteed: the attribution
+setting is reported as not covering messages the model builds by hand through
+the Bash tool, and the `Claude-Session:` trailer ignores it entirely.
+
+**Caveat:** `core.hooksPath` is global, so a repo that sets its own
+`core.hooksPath` locally — husky does this — overrides it, and the commit-msg
+hook won't run there. In those repos, chain this script from the project's own
+hook.
+
 ## Adapting for Cursor and Codex
 
 Cursor and Codex don't have Claude Code's skill-loading or hook mechanism, so
-they can't consume `skills/*/SKILL.md` or `hooks/git-guardrails.sh` directly.
+they can't consume `skills/*/SKILL.md` or `hooks/*.sh` directly.
 `scripts/generate-configs.sh` derives two adapted, self-contained configs from
 the same source (`CLAUDE.md`, `skills/`, `rules/`):
 
@@ -106,9 +132,10 @@ the same source (`CLAUDE.md`, `skills/`, `rules/`):
   `data-work.mdc` stay separate, glob-scoped files — Cursor supports path-scoped
   rules natively, converted from each source file's `paths:` frontmatter.
 
-Neither adapted file ports `git-guardrails.sh`: its checks only restate Rules
-2-4, already present as prose in both files, and neither tool runs Bash hooks
-the way Claude Code does — so those rules are guidance there, not enforced.
+Neither adapted file ports `hooks/git-guardrails.sh` or `hooks/commit-msg`:
+their checks only restate rules already present as prose in both files, and
+neither tool runs Bash hooks the way Claude Code does — so those rules are
+guidance there, not enforced.
 
 **`CLAUDE.md`, `skills/` and `rules/` are the source of truth.** Edit those,
 never `AGENTS.md` or `.cursor/rules/*.mdc` directly (each starts with a
