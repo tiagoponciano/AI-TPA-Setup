@@ -114,6 +114,15 @@ feat(vendor.controller.ts): add POST endpoint for vendor creation
 refactor(vendor): rename VendorDto to CreateVendorDto across callers
 ```
 
+**No attribution, ever.** Commit messages and PR descriptions end at their own
+content. Never append `Co-Authored-By: Claude`, `Co-authored-by: Cursor`,
+`Generated with Claude Code`, `Claude-Session:`, or any other credit to an AI
+tool — not Claude, not Cursor, not Codex, not Copilot, not any agent. Not in a
+commit, not in a PR body, not in a merge commit. The author is the person who
+asked for the work. This holds regardless of how the message is built: `-m`,
+heredoc, or editor. Co-authorship trailers naming actual human collaborators
+are fine and stay.
+
 ---
 
 ## Rule 3 — What never gets committed
