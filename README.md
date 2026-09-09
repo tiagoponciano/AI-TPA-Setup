@@ -4,6 +4,11 @@ Personal Claude Code configuration: working agreement, path-scoped rules,
 skills, and git guardrails. Symlinked into `~/.claude/` so it applies to every
 project on the machine.
 
+`CLAUDE.md`, `skills/` and `rules/` are also the source of truth for two
+derived, generated configs that adapt the same working agreement for Cursor
+and Codex — neither has skills or hooks, so see
+[Adapting for Cursor and Codex](#adapting-for-cursor-and-codex) below.
+
 ## Layout
 
 ```
@@ -18,7 +23,14 @@ claude-config/
 │   └── feature-doc/SKILL.md
 ├── hooks/
 │   └── git-guardrails.sh         → ~/.claude/hooks/           (blocks, doesn't advise)
-└── settings.json                 → merge into ~/.claude/settings.json
+├── settings.json                 → merge into ~/.claude/settings.json
+├── scripts/
+│   └── generate-configs.sh       → generates the two files below
+├── AGENTS.md                     → Codex CLI reads this at the project root
+└── .cursor/rules/
+    ├── working-agreement.mdc     → alwaysApply, mirrors CLAUDE.md + skills
+    ├── tests.mdc                 → globs from rules/tests.md's `paths:`
+    └── data-work.mdc             → globs from rules/data-work.md's `paths:`
 ```
 
 ## Install
@@ -78,3 +90,30 @@ them.
 - `git merge` while on a base branch, and `git checkout dev && git merge <branch>`
 
 Everything else passes through untouched.
+
+## Adapting for Cursor and Codex
+
+Cursor and Codex don't have Claude Code's skill-loading or hook mechanism, so
+they can't consume `skills/*/SKILL.md` or `hooks/git-guardrails.sh` directly.
+`scripts/generate-configs.sh` derives two adapted, self-contained configs from
+the same source (`CLAUDE.md`, `skills/`, `rules/`):
+
+- **`AGENTS.md`** (repo root) — read automatically by Codex CLI. Skill content
+  is inlined as an appendix (there's no on-demand loading), and `rules/tests.md`
+  / `rules/data-work.md` become flat sections (there's no glob-scoped loading).
+- **`.cursor/rules/*.mdc`** — read automatically by Cursor. `working-agreement.mdc`
+  is `alwaysApply: true` with the same inlined skill appendix; `tests.mdc` and
+  `data-work.mdc` stay separate, glob-scoped files — Cursor supports path-scoped
+  rules natively, converted from each source file's `paths:` frontmatter.
+
+Neither adapted file ports `git-guardrails.sh`: its checks only restate Rules
+2-4, already present as prose in both files, and neither tool runs Bash hooks
+the way Claude Code does — so those rules are guidance there, not enforced.
+
+**`CLAUDE.md`, `skills/` and `rules/` are the source of truth.** Edit those,
+never `AGENTS.md` or `.cursor/rules/*.mdc` directly (each starts with a
+`GENERATED FILE` marker as a reminder), then regenerate and commit the result:
+
+```bash
+./scripts/generate-configs.sh
+```
