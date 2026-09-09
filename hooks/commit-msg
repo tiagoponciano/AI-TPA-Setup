@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# commit-msg — strip AI tool attribution from commit messages.
+# Deterministic backstop for the no-attribution rule in ~/.claude/CLAUDE.md.
+# Runs on every commit, however the message was written: -m, heredoc, or editor.
+
+set -euo pipefail
+
+MSG_FILE="$1"
+TMP=$(mktemp)
+
+grep -v -E \
+  -e '^[[:space:]]*Co-[Aa]uthored-[Bb]y:.*(Claude|Cursor|Codex|Copilot|Devin|Windsurf|Cline|Aider|noreply@anthropic\.com|noreply@openai\.com|noreply@github\.com)' \
+  -e '(Generated with|generated with|Created with|Written with).*(Claude|Cursor|Codex|Copilot|Devin|Windsurf|Aider)' \
+  -e '^[[:space:]]*Claude-Session:' \
+  -e '^[[:space:]]*(Assisted-by|Generated-by|AI-Assisted):' \
+  "$MSG_FILE" > "$TMP" || true
+
+# Drop trailing blank lines left behind by the removed trailers.
+awk '{ lines[NR] = $0 }
+     END {
+       last = 0
+       for (i = NR; i > 0; i--) if (lines[i] !~ /^[[:space:]]*$/) { last = i; break }
+       for (i = 1; i <= last; i++) print lines[i]
+     }' "$TMP" > "$MSG_FILE"
+
+rm -f "$TMP"
