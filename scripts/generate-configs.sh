@@ -64,6 +64,8 @@ rewrite_skill_refs() {
     -e 's/Load `pr-message` skill/Follow PR message conventions (appendix)/' \
     -e 's/Load `session-checkpoint` skill/Follow session checkpoint conventions (appendix)/' \
     -e 's/load `feature-doc` skill/follow feature-doc conventions (appendix)/' \
+    -e 's/Load the `project-readme` skill when starting one from scratch, when how the project is run or set up has changed, or when asked to improve an existing one\./follow the project README conventions in the appendix in those same cases./' \
+    -e 's/Load `project-readme` skill/Follow project README conventions (appendix)/' \
     -e 's/^Detailed conventions load automatically when working with test files$/Detailed conventions: test-file conventions and notebook\/SQL\/pipeline/' \
     -e 's/^(`~\/\.claude\/rules\/tests\.md`) or with notebooks, SQL and pipelines$/conventions are covered separately below (auto-attached by glob where/' \
     -e 's/^(`~\/\.claude\/rules\/data-work\.md`)\.$/the tool supports it)./'
@@ -76,15 +78,16 @@ RULES_BODY=$(tail -n +7 CLAUDE.md | rewrite_skill_refs)
 PR_MESSAGE_APPENDIX=$(strip_frontmatter skills/pr-message/SKILL.md | demote_headings)
 SESSION_CHECKPOINT_APPENDIX=$(strip_frontmatter skills/session-checkpoint/SKILL.md | demote_headings)
 FEATURE_DOC_APPENDIX=$(strip_frontmatter skills/feature-doc/SKILL.md | demote_headings)
+PROJECT_README_APPENDIX=$(strip_frontmatter skills/project-readme/SKILL.md | demote_headings)
 TESTS_BODY=$(strip_frontmatter rules/tests.md | demote_headings)
 DATA_WORK_BODY=$(strip_frontmatter rules/data-work.md | demote_headings)
 
 # NOTE: built with printf, not a `cat <<EOF` inside $(...) — bash's parser
 # mishandles apostrophes in a heredoc nested inside command substitution.
-APPENDIX=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n%s' \
+APPENDIX=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s' \
   "## Appendix: on-demand conventions" \
   "These were separate, on-demand skills in Claude Code. There is no skill-loading mechanism here, so follow them directly whenever the rules above point to them." \
-  "$PR_MESSAGE_APPENDIX" "$SESSION_CHECKPOINT_APPENDIX" "$FEATURE_DOC_APPENDIX")
+  "$PR_MESSAGE_APPENDIX" "$SESSION_CHECKPOINT_APPENDIX" "$FEATURE_DOC_APPENDIX" "$PROJECT_README_APPENDIX")
 
 # --- AGENTS.md (Codex) ------------------------------------------------------
 # Codex has no glob-scoped rule loading, so the path-scoped rules/*.md files
