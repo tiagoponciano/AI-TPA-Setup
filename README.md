@@ -94,7 +94,8 @@ AI-TPA-Setup/
 ├── skills/
 │   ├── pr-message/SKILL.md       → ~/.claude/skills/          (loaded on demand, e.g. "gera o PR")
 │   ├── session-checkpoint/SKILL.md
-│   └── feature-doc/SKILL.md
+│   ├── feature-doc/SKILL.md
+│   └── project-readme/SKILL.md
 ├── hooks/
 │   ├── git-guardrails.sh         → ~/.claude/hooks/           (blocks risky git commands)
 │   └── commit-msg                → strips AI attribution from every commit

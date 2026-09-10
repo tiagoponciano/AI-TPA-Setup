@@ -194,6 +194,9 @@ document is incomplete. Load the `feature-doc` skill when writing or updating on
 of what happened to it. No changelog, no dates, no "previously the behavior was
 X" — when behavior changes, the old sentence is rewritten.
 
+**The root README is different**: it's the front door, not a reference.
+Load the `project-readme` skill when starting one from scratch, when how the project is run or set up has changed, or when asked to improve an existing one.
+
 ---
 
 ## Rule 7 — Tests
@@ -234,5 +237,6 @@ wasn't tested stays visible as unchecked, with a reason.
 | User asks for the PR | Load `pr-message` skill |
 | Plan step done / pause / risky op / "checkpoint" | Load `session-checkpoint` skill |
 | Any implementation | Update the feature doc, own commit — load `feature-doc` skill |
+| README missing, stale, or asked to improve | Load `project-readme` skill |
 | Conflict resolved, build green | Report and stop. Push only on the user's word |
 | Resuming a session | Read `STATUS.md` first, before any code |
