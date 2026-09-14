@@ -1,25 +1,26 @@
 # AI-TPA-Setup
 
-This repository organizes every rule TPA uses in development and work:
-working agreement, path-scoped rules, skills, git guardrails, and the
-attribution policy — all in one place.
+TPA's development conventions — working agreement, path-scoped rules, skills,
+git guardrails, and the attribution policy — kept in one repo and linked into
+Claude Code, Cursor and Codex.
 
-**Read this if you're wondering "why doesn't Claude/Cursor/Codex follow this
-yet?"** The files in this repo do nothing by themselves. `CLAUDE.md` sitting
-in this folder is just a text file — Claude Code doesn't read this folder at
-all unless you tell it to, and it only checks two places: the project you're
-currently working in, and `~/.claude/` (a fixed folder in your home directory
-that applies to *every* project). Same idea for Cursor and Codex, with their
-own fixed locations. **"Installing" this repo means putting a link to it in
-those fixed locations, so those tools start reading it.** Nothing here reads
-your mind — it activates the moment you finish the steps below, and only then.
+## What it does
 
-## Quick start: making Claude Code actually follow these rules
+The files here do nothing by themselves. `CLAUDE.md` sitting in this folder is
+just a text file — Claude Code doesn't read this folder at all unless told to,
+and it only checks two places: the project currently open, and `~/.claude/` (a
+fixed folder in the home directory that applies to every project). Same idea
+for Cursor and Codex, each with its own fixed location. "Installing" this repo
+means putting a link to it in those fixed locations, so those tools start
+reading it. Nothing here reads your mind — it activates the moment the steps
+below finish, and only then.
 
-Do this once, on each computer where you use Claude Code.
+## Running it locally
 
-**1. Put this repo somewhere permanent.** Not a temp folder — if you delete or
-move it later, everything below breaks (the links point at this exact path).
+Do this once, on each computer where Claude Code is used.
+
+**1. Put this repo somewhere permanent.** Not a temp folder — if it's deleted
+or moved later, everything below breaks (the links point at this exact path).
 
 ```bash
 git clone git@github.com:tiagoponciano/AI-TPA-Setup.git ~/dev/AI-TPA-Setup
@@ -52,9 +53,9 @@ git config --global core.hooksPath ~/.claude/hooks
 ```
 
 **4. Merge, don't overwrite, `settings.json`.** This one is deliberately
-*not* a symlink — Claude Code writes to your real `~/.claude/settings.json`
-while you use it (for its own auto-memory toggle, for instance), so linking it
-here would let Claude Code's writes silently edit this git repo. Open
+*not* a symlink — Claude Code writes to the real `~/.claude/settings.json`
+during use (for its own auto-memory toggle, for instance), so linking it here
+would let Claude Code's writes silently edit this git repo. Open
 `~/.claude/settings.json` (create it if it doesn't exist) and copy in the
 `hooks` and `attribution` blocks from this repo's `settings.json` by hand,
 next to whatever is already there.
@@ -62,26 +63,9 @@ next to whatever is already there.
 **5. Restart Claude Code** (or open a new terminal tab) so it re-reads
 `~/.claude/`. Steps 2-4 only take effect in sessions that start after them.
 
-That's the whole install. Steps 1-2 you do once; if you ever edit the rules,
+That's the whole install. Steps 1-2 happen once; to edit the rules afterward,
 edit the files in `~/dev/AI-TPA-Setup` (the real location) — the symlinks pick
 it up automatically, everywhere, immediately.
-
-## Verify it actually took
-
-```
-/context     # confirms CLAUDE.md loaded, under "Memory files"
-/hooks       # confirms git-guardrails is registered under PreToolUse
-/memory      # lists and opens the instruction files
-```
-
-```bash
-git config --get core.hooksPath          # expect: /Users/<you>/.claude/hooks
-echo '{"tool_input":{"command":"git add ."},"cwd":"'"$PWD"'"}' | ~/.claude/hooks/git-guardrails.sh
-echo $?    # expect 2 — the guardrail blocked it
-```
-
-If any of these come back empty or wrong, go back to the matching step above —
-nothing here half-works; it's either linked or it isn't.
 
 ## Layout
 
@@ -109,6 +93,20 @@ AI-TPA-Setup/
     └── data-work.mdc
 ```
 
+## Common tasks
+
+| Command | Checks |
+|---|---|
+| `/context` | `CLAUDE.md` loaded, under "Memory files" |
+| `/hooks` | `git-guardrails` registered under PreToolUse |
+| `/memory` | lists and opens the instruction files |
+| `git config --get core.hooksPath` | expect `/Users/<you>/.claude/hooks` |
+| `echo '{"tool_input":{"command":"git add ."},"cwd":"'"$PWD"'"}' \| ~/.claude/hooks/git-guardrails.sh; echo $?` | expect `2` — the guardrail blocked it |
+| `./scripts/generate-configs.sh` | regenerates `AGENTS.md` and `.cursor/rules/*.mdc` after editing `CLAUDE.md`, `skills/` or `rules/` |
+
+If any of the checks above come back empty or wrong, go back to the matching
+install step — nothing here half-works; it's either linked or it isn't.
+
 ## What enforces what
 
 | Layer | Mechanism | Guarantee |
@@ -119,9 +117,9 @@ AI-TPA-Setup/
 
 Hooks fire before any permission-mode check, so they hold even under
 `--dangerously-skip-permissions`. They can only tighten restrictions, never
-loosen them — and none of this fires until the Quick Start above is done.
+loosen them — and none of this fires until the install steps above are done.
 
-## What the git-guardrails hook blocks
+### What the git-guardrails hook blocks
 
 - `git add .`, `git add -A`, `git add --all`, `git add *`
 - staging any `.env` variant except `.env.example`, any `*.pem` or `*.key`, and `STATUS.md`
@@ -134,12 +132,12 @@ Everything else passes through untouched.
 
 ## Attribution
 
-**This only affects commits made after you finish step 3 of the Quick Start.**
-It cannot reach into git history: any commit made before `core.hooksPath` was
+**This only affects commits made after step 3 of the install is done.** It
+cannot reach into git history: any commit made before `core.hooksPath` was
 set — on any repo, on any computer — keeps whatever it already says, forever.
 GitHub reads that text directly to decide who to list as a co-author, so a
 past commit that already says `Co-Authored-By: Claude` will keep showing
-Claude as a contributor even after you install this. The only way to remove it
+Claude as a contributor even after installing this. The only way to remove it
 from an already-pushed commit is rewriting that commit's history and
 force-pushing over it, which this repo's own `git-guardrails.sh` blocks on
 `dev`/`main`/`master` on purpose — going forward clean is the realistic goal,
@@ -161,9 +159,9 @@ Layer 3 exists because 1 and 2 aren't guaranteed: the `attribution` setting is
 reported as not covering messages the model builds by hand through a shell
 command, and it doesn't touch `Claude-Session:` at all — the hook catches both.
 
-**Caveat:** `core.hooksPath` is global to your machine, so a repository that
-sets its *own* `core.hooksPath` locally — husky does this — overrides yours,
-and `commit-msg` won't run there. In those repos, call this script from the
+**Caveat:** `core.hooksPath` is global to the machine, so a repository that
+sets its *own* `core.hooksPath` locally — husky does this — overrides it, and
+`commit-msg` won't run there. In those repos, call this script from the
 project's own hook instead.
 
 ## Adapting for Cursor and Codex
