@@ -10,7 +10,7 @@ TMP=$(mktemp)
 
 grep -v -E \
   -e '^[[:space:]]*Co-[Aa]uthored-[Bb]y:.*(Claude|Cursor|Codex|Copilot|Devin|Windsurf|Cline|Aider|noreply@anthropic\.com|noreply@openai\.com|noreply@github\.com|cursoragent@cursor\.com)' \
-  -e '(Generated with|generated with|Created with|Written with|Made with).*(Claude|Cursor|Codex|Copilot|Devin|Windsurf|Aider)' \
+  -e '^[[:space:]]*(Generated with|generated with|Created with|Written with|Made with)[[:space:]].*(Claude|Cursor|Codex|Copilot|Devin|Windsurf|Aider)' \
   -e '^[[:space:]]*Made with \[Cursor\]' \
   -e '^[[:space:]]*Claude-Session:' \
   -e '^[[:space:]]*(Assisted-by|Generated-by|AI-Assisted):' \
