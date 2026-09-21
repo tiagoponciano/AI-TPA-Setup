@@ -116,12 +116,22 @@ refactor(vendor): rename VendorDto to CreateVendorDto across callers
 
 **No attribution, ever.** Commit messages and PR descriptions end at their own
 content. Never append `Co-Authored-By: Claude`, `Co-authored-by: Cursor`,
-`Generated with Claude Code`, `Claude-Session:`, or any other credit to an AI
-tool — not Claude, not Cursor, not Codex, not Copilot, not any agent. Not in a
-commit, not in a PR body, not in a merge commit. The author is the person who
-asked for the work. This holds regardless of how the message is built: `-m`,
-heredoc, or editor. Co-authorship trailers naming actual human collaborators
-are fine and stay.
+`Generated with Claude Code`, `Claude-Session:`, `Made with Cursor`, or any
+other credit to an AI tool — not Claude, not Cursor, not Codex, not Copilot,
+not any agent. Not in a commit, not in a PR body, not in a merge commit. The
+author is the person who asked for the work. This holds regardless of how the
+message is built: `-m`, heredoc, or editor. Co-authorship trailers naming
+actual human collaborators are fine and stay.
+
+Product tooling can still inject attribution after the agent runs — that is
+not fixed by this rule alone:
+
+- **Claude Code:** `settings.json` `attribution` empty + `hooks/commit-msg`
+- **Cursor:** Settings → Git & PRs → Attribution off; `~/.cursor/cli-config.json`
+  `attributeCommitsToAgent` / `attributePRsToAgent` → `false`
+- **Codex:** `~/.codex/config.toml` `commit_attribution = ""`; global
+  `~/.codex/AGENTS.md` (symlink to this repo's generated `AGENTS.md`); never
+  add AI footers in commits or PR bodies
 
 ---
 
