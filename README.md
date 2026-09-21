@@ -63,6 +63,27 @@ next to whatever is already there.
 **5. Restart Claude Code** (or open a new terminal tab) so it re-reads
 `~/.claude/`. Steps 2-4 only take effect in sessions that start after them.
 
+**6. Codex (optional, same machine).** Codex reads `~/.codex/AGENTS.md` for
+global guidance and can inject a co-author trailer on generated commits:
+
+```bash
+mkdir -p ~/.codex
+ln -sfn ~/dev/AI-TPA-Setup/AGENTS.md ~/.codex/AGENTS.md
+```
+
+In `~/.codex/config.toml` (create if missing), set:
+
+```toml
+commit_attribution = ""
+```
+
+**7. Cursor attribution (optional).** Rules live under `.cursor/rules/` when
+this repo (or a generated copy) is open. Also turn product injection off:
+
+- Cursor Settings → Git & PRs → Attribution → off for commits and PRs
+- `~/.cursor/cli-config.json`: `attributeCommitsToAgent` / `attributePRsToAgent`
+  → `false`
+
 That's the whole install. Steps 1-2 happen once; to edit the rules afterward,
 edit the files in `~/dev/AI-TPA-Setup` (the real location) — the symlinks pick
 it up automatically, everywhere, immediately.
@@ -86,8 +107,8 @@ AI-TPA-Setup/
 ├── settings.json                 → merge (never symlink) into ~/.claude/settings.json
 ├── scripts/
 │   └── generate-configs.sh       → generates the two entries below, for Cursor and Codex
-├── AGENTS.md                     → read automatically by Codex CLI, but only inside THIS repo
-└── .cursor/rules/                → read automatically by Cursor, but only inside THIS repo
+├── AGENTS.md                     → ~/.codex/AGENTS.md         (Codex global + this repo)
+└── .cursor/rules/                → ~/.cursor/rules/           (Cursor global via symlink)
     ├── working-agreement.mdc
     ├── tests.mdc
     └── data-work.mdc
@@ -159,6 +180,20 @@ Layer 3 exists because 1 and 2 aren't guaranteed: the `attribution` setting is
 reported as not covering messages the model builds by hand through a shell
 command, and it doesn't touch `Claude-Session:` at all — the hook catches both.
 
+**Cursor / Codex product injection** is separate from Claude Code:
+
+| Tool | Disable attribution |
+|---|---|
+| Cursor IDE | Settings → Git & PRs → Attribution off |
+| Cursor CLI | `~/.cursor/cli-config.json` → `attributeCommitsToAgent` / `attributePRsToAgent` false |
+| Codex | `~/.codex/config.toml` → `commit_attribution = ""` |
+
+`hooks/commit-msg` still strips AI trailers (including `Made with Cursor`) on
+every commit when `core.hooksPath` points at `~/.claude/hooks`.
+
+In PR bodies, use bare GitHub refs (`owner/repo#123`) so status icons render —
+never markdown links. See the `pr-message` skill / `AGENTS.md` appendix.
+
 **Caveat:** `core.hooksPath` is global to the machine, so a repository that
 sets its *own* `core.hooksPath` locally — husky does this — overrides it, and
 `commit-msg` won't run there. In those repos, call this script from the
@@ -167,23 +202,19 @@ project's own hook instead.
 ## Adapting for Cursor and Codex
 
 Claude Code has one global folder (`~/.claude/`) that every project shares —
-that's what the symlinks above plug into. **Cursor and Codex don't have that.**
-Each reads its config from *inside the project it's currently open in*
-(`AGENTS.md`, `.cursor/rules/`), not from one shared folder. That means the
-`AGENTS.md` and `.cursor/rules/*.mdc` files in this repo only affect Cursor or
-Codex sessions opened on *this* repo — to get the same rules in another
-project, generate a copy of them there too (see below), or check that tool's
-own global/user-level settings if it offers one.
+that's what the symlinks above plug into. **Codex** also has a global home
+(`~/.codex/`): symlink this repo's generated `AGENTS.md` there (install step
+6) so every Codex session gets the working agreement. **Cursor** reads
+`.cursor/rules/` from the open project; symlink or copy the generated
+`.cursor/rules/*.mdc` into projects that need them, or open this repo.
 
 Neither has Claude Code's skill-loading or hook mechanism either, so
 `skills/*/SKILL.md` and `hooks/*.sh` aren't usable there as-is.
 `scripts/generate-configs.sh` derives two self-contained, adapted configs from
 the same source (`CLAUDE.md`, `skills/`, `rules/`):
 
-- **`AGENTS.md`** — read automatically by Codex CLI at the project root. Skill
-  content is inlined as an appendix (there's no on-demand loading), and
-  `rules/tests.md` / `rules/data-work.md` become flat sections (there's no
-  glob-scoped loading).
+- **`AGENTS.md`** — read by Codex from `~/.codex/AGENTS.md` (global) and from
+  a project root when present. Skill content is inlined as an appendix.
 - **`.cursor/rules/*.mdc`** — read automatically by Cursor. `working-agreement.mdc`
   is `alwaysApply: true` with the same inlined skill appendix; `tests.mdc` and
   `data-work.mdc` stay separate, glob-scoped files — Cursor supports
@@ -193,7 +224,7 @@ the same source (`CLAUDE.md`, `skills/`, `rules/`):
 Neither adapted file ports `hooks/git-guardrails.sh` or `hooks/commit-msg`:
 their checks only restate rules already present as prose in both files, and
 neither tool runs Bash hooks the way Claude Code does — so those rules are
-guidance there, not enforced.
+guidance there, not enforced (except `commit-msg` via global `core.hooksPath`).
 
 **`CLAUDE.md`, `skills/` and `rules/` are the source of truth.** Edit those,
 never `AGENTS.md` or `.cursor/rules/*.mdc` directly (each starts with a
