@@ -129,6 +129,10 @@ Conditional sections, appended in this order when they apply: `## Screenshots`
 - English, senior-dev tone. Code identifiers in backticks. No emoji, no marketing
   language (`enterprise-grade`, `robust`, `seamless`), no summary of the summary.
 - Omit conditional sections that don't apply rather than writing "N/A".
+- No AI attribution footer (`Made with Cursor`, Co-authored-by agents, etc.).
+- Cross-repo and same-repo GitHub issue/PR references use bare refs so GitHub
+  renders the status icon: `owner/repo#123` or `#123`. Never wrap them in
+  markdown links (`[text](url)`).
 
 ### Length budget
 
