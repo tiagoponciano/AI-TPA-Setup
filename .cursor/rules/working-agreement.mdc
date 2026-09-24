@@ -175,10 +175,10 @@ commits, **not from history** — if a real credential was pushed, rotate it.
 **Generate a PR description only when explicitly asked** ("gera o PR", "bora
 mergear", "ready to merge"). Never after a commit, never as a default.
 
-When asked, use the `pr-message` skill and follow it: conflict check, build and
+When asked, follow the PR message conventions in the appendix: conflict check, build and
 test verification, then the description.
 
-**Always, regardless of the skill:** never merge the PR, never push to the base
+**Always, regardless of these conventions:** never merge the PR, never push to the base
 branch, never rebase an open branch, and never `git push` without the user
 saying so.
 
@@ -189,7 +189,7 @@ saying so.
 Write or update `STATUS.md` when a plan step completes, when ~6 commits have
 landed since the last checkpoint, before any destructive operation, when work is
 about to pause, when a blocker appears, or when the user says "checkpoint" /
-"pausa" / "salva aí". Not on a timer. Use the `session-checkpoint` skill.
+"pausa" / "salva aí". Not on a timer. Follow the session checkpoint conventions in the appendix.
 
 On resume, read `STATUS.md` before touching code, and never auto-continue a
 fix-and-validate loop the user didn't explicitly ask to continue.
@@ -202,14 +202,14 @@ fix-and-validate loop the user didn't explicitly ask to continue.
 own commit.** The document is named after the feature and lives in a `docs/`
 folder inside its module: `server/src/modules/vendor/docs/vendor-creation.md`.
 A PR that ships an implementation without touching the corresponding feature
-document is incomplete. Use the `feature-doc` skill when writing or updating one.
+document is incomplete. Follow the feature documentation conventions in the appendix when writing or updating one.
 
 **Update, never append.** The document describes the code as it is now, not a log
 of what happened to it. No changelog, no dates, no "previously the behavior was
 X" — when behavior changes, the old sentence is rewritten.
 
 **The root README is different**: it's the front door, not a reference.
-Use the `project-readme` skill in those same cases.
+follow the project README conventions in the appendix in those same cases.
 
 ---
 
@@ -222,9 +222,9 @@ logic, formulas and derived values, anything with an external contract.
 Not required for config changes, dependency bumps, formatting, copy edits, or
 pass-throughs with no logic — say so in the PR instead of pretending otherwise.
 
-Use the test conventions when working with test files; use the data-work conventions
-when working with notebooks, SQL and pipelines.
-
+Detailed conventions: test-file conventions and notebook/SQL/pipeline
+conventions are covered separately below (auto-attached by glob where
+the tool supports it).
 
 ---
 
@@ -248,10 +248,10 @@ wasn't tested stays visible as unchecked, with a reason.
 | Fixing a bug | Failing test first → fix → same PR |
 | About to stage | Never `.env`, plans, or `STATUS.md` |
 | Forbidden file tracked | `git rm --cached` → `.gitignore` → rotate if real |
-| User asks for the PR | Use the `pr-message` skill |
-| Plan step done / pause / risky op / "checkpoint" | Use the `session-checkpoint` skill |
-| Any implementation | Update the feature doc, own commit — use the `feature-doc` skill |
-| README missing, stale, or asked to improve | Use the `project-readme` skill |
+| User asks for the PR | Follow PR message conventions (appendix) |
+| Plan step done / pause / risky op / "checkpoint" | Follow session checkpoint conventions (appendix) |
+| Any implementation | Update the feature doc, own commit — follow feature-doc conventions (appendix) |
+| README missing, stale, or asked to improve | Follow project README conventions (appendix) |
 | Conflict resolved, build green | Report and stop. Push only on the user's word |
 | Resuming a session | Read `STATUS.md` first, before any code |
 
@@ -259,7 +259,7 @@ wasn't tested stays visible as unchecked, with a reason.
 
 ## Appendix: on-demand conventions
 
-These conventions are inlined here because Cursor has no skill-loading mechanism; Codex loads the corresponding skills from ~/.agents/skills.
+These were separate, on-demand skills in Claude Code. Cursor has no skill-loading mechanism, so follow them directly whenever the rules above point to them.
 
 ## PR message
 

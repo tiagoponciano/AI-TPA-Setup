@@ -70,9 +70,27 @@ rewrite_codex_skill_refs() {
     -e 's/^(`~\/\.claude\/rules\/data-work\.md`)\.$//'
 }
 
-# CLAUDE.md minus its Claude-specific title/intro (lines 1-5) — this is the
-# reusable body shared by every tool.
-RULES_BODY=$(tail -n +7 CLAUDE.md | rewrite_codex_skill_refs)
+# Rewrite skill references into Cursor's inlined appendix conventions.
+rewrite_cursor_skill_refs() {
+  sed \
+    -e 's/load the `pr-message` skill and follow it/follow the PR message conventions in the appendix/' \
+    -e 's/\*\*Always, regardless of the skill:\*\*/\*\*Always, regardless of these conventions:\*\*/' \
+    -e 's/Load the `session-checkpoint` skill\./Follow the session checkpoint conventions in the appendix./' \
+    -e 's/Load the `feature-doc` skill when writing or updating one\./Follow the feature documentation conventions in the appendix when writing or updating one./' \
+    -e 's/Load `pr-message` skill/Follow PR message conventions (appendix)/' \
+    -e 's/Load `session-checkpoint` skill/Follow session checkpoint conventions (appendix)/' \
+    -e 's/load `feature-doc` skill/follow feature-doc conventions (appendix)/' \
+    -e 's/Load the `project-readme` skill when starting one from scratch, when how the project is run or set up has changed, or when asked to improve an existing one\./follow the project README conventions in the appendix in those same cases./' \
+    -e 's/Load `project-readme` skill/Follow project README conventions (appendix)/' \
+    -e 's/^Detailed conventions load automatically when working with test files$/Detailed conventions: test-file conventions and notebook\/SQL\/pipeline/' \
+    -e 's/^(`~\/\.claude\/rules\/tests\.md`) or with notebooks, SQL and pipelines$/conventions are covered separately below (auto-attached by glob where/' \
+    -e 's/^(`~\/\.claude\/rules\/data-work\.md`)\.$/the tool supports it)./'
+}
+
+# CLAUDE.md minus its Claude-specific title/intro (lines 1-5), adapted for
+# each target's own instruction-loading model.
+CODEX_RULES_BODY=$(tail -n +7 CLAUDE.md | rewrite_codex_skill_refs)
+CURSOR_RULES_BODY=$(tail -n +7 CLAUDE.md | rewrite_cursor_skill_refs)
 
 PR_MESSAGE_APPENDIX=$(strip_frontmatter skills/pr-message/SKILL.md | demote_headings)
 SESSION_CHECKPOINT_APPENDIX=$(strip_frontmatter skills/session-checkpoint/SKILL.md | demote_headings)
@@ -85,7 +103,7 @@ DATA_WORK_BODY=$(strip_frontmatter rules/data-work.md | demote_headings)
 # mishandles apostrophes in a heredoc nested inside command substitution.
 APPENDIX=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s' \
   "## Appendix: on-demand conventions" \
-  "These conventions are inlined here because Cursor has no skill-loading mechanism; Codex loads the corresponding skills from ~/.agents/skills." \
+  "These were separate, on-demand skills in Claude Code. Cursor has no skill-loading mechanism, so follow them directly whenever the rules above point to them." \
   "$PR_MESSAGE_APPENDIX" "$SESSION_CHECKPOINT_APPENDIX" "$FEATURE_DOC_APPENDIX" "$PROJECT_README_APPENDIX")
 
 # --- AGENTS.md (Codex) ------------------------------------------------------
@@ -101,7 +119,7 @@ ${GENERATED_NOTE}
 Applies to this project. A project's own \`AGENTS.md\` further down the tree
 overrides anything here.
 
-${RULES_BODY}
+${CODEX_RULES_BODY}
 EOF
 
 # --- .agents/skills (Codex, repository-local and global source) -------------
@@ -153,7 +171,7 @@ ${GENERATED_NOTE}
 
 # Working agreement
 
-${RULES_BODY}
+${CURSOR_RULES_BODY}
 
 ---
 
