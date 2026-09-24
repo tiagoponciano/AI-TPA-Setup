@@ -132,9 +132,10 @@ not fixed by this rule alone:
 - **Claude Code:** `settings.json` `attribution` empty + `hooks/commit-msg`
 - **Cursor:** Settings → Git & PRs → Attribution off; `~/.cursor/cli-config.json`
   `attributeCommitsToAgent` / `attributePRsToAgent` → `false`
-- **Codex:** `~/.codex/config.toml` `commit_attribution = ""`; global
-  `~/.codex/AGENTS.md` (symlink to this repo's generated `AGENTS.md`); never
-  add AI footers in commits or PR bodies
+- **Codex:** global `~/.codex/AGENTS.md` (symlink to this repo's generated
+  `AGENTS.md`); `~/.codex/hooks.json` includes the `PreToolUse` entry from
+  `hooks/codex-hooks.json`; global Git `core.hooksPath` points at
+  `~/.claude/hooks`; never add AI footers in commits or PR bodies
 
 ---
 

@@ -64,18 +64,30 @@ next to whatever is already there.
 `~/.claude/`. Steps 2-4 only take effect in sessions that start after them.
 
 **6. Codex (optional, same machine).** Codex reads `~/.codex/AGENTS.md` for
-global guidance and can inject a co-author trailer on generated commits:
+global guidance and can run lifecycle hooks from `~/.codex/hooks.json`:
 
 ```bash
 mkdir -p ~/.codex
 ln -sfn ~/dev/AI-TPA-Setup/AGENTS.md ~/.codex/AGENTS.md
 ```
 
-In `~/.codex/config.toml` (create if missing), set:
+In `~/.codex/config.toml` (create if missing), enable hooks:
 
 ```toml
-commit_attribution = ""
+[features]
+hooks = true
 ```
+
+Then merge `hooks/codex-hooks.json` into `~/.codex/hooks.json`. If this is the
+only Codex hook on the machine, a symlink is enough:
+
+```bash
+ln -sfn ~/dev/AI-TPA-Setup/hooks/codex-hooks.json ~/.codex/hooks.json
+```
+
+If `~/.codex/hooks.json` already exists, keep the existing hooks and add the
+`PreToolUse` entry from `hooks/codex-hooks.json` under its top-level `hooks`
+object. Restart Codex, run `/hooks`, and trust the new hook definition.
 
 **7. Cursor attribution (optional).** Rules live under `.cursor/rules/` when
 this repo (or a generated copy) is open. Also turn product injection off:
@@ -103,7 +115,8 @@ AI-TPA-Setup/
 │   └── project-readme/SKILL.md
 ├── hooks/
 │   ├── git-guardrails.sh         → ~/.claude/hooks/           (blocks risky git commands)
-│   └── commit-msg                → strips AI attribution from every commit
+│   ├── commit-msg                → strips AI attribution from every commit
+│   └── codex-hooks.json          → ~/.codex/hooks.json        (Codex PreToolUse wrapper)
 ├── settings.json                 → merge (never symlink) into ~/.claude/settings.json
 ├── scripts/
 │   └── generate-configs.sh       → generates the two entries below, for Cursor and Codex
@@ -122,6 +135,7 @@ AI-TPA-Setup/
 | `/hooks` | `git-guardrails` registered under PreToolUse |
 | `/memory` | lists and opens the instruction files |
 | `git config --get core.hooksPath` | expect `/Users/<you>/.claude/hooks` |
+| `/hooks` in Codex | `git-guardrails` registered and trusted under PreToolUse |
 | `echo '{"tool_input":{"command":"git add ."},"cwd":"'"$PWD"'"}' \| ~/.claude/hooks/git-guardrails.sh; echo $?` | expect `2` — the guardrail blocked it |
 | `./scripts/generate-configs.sh` | regenerates `AGENTS.md` and `.cursor/rules/*.mdc` after editing `CLAUDE.md`, `skills/` or `rules/` |
 
@@ -133,7 +147,8 @@ install step — nothing here half-works; it's either linked or it isn't.
 | Layer | Mechanism | Guarantee |
 |---|---|---|
 | Conventions and judgment | `CLAUDE.md`, rules, skills | Guidance — Claude reads and follows, without hard compliance |
-| Destructive git actions | `hooks/git-guardrails.sh` | Deterministic — runs before every matching Bash call, once installed |
+| Destructive git actions in Claude Code | `settings.json` PreToolUse + `hooks/git-guardrails.sh` | Deterministic — runs before every matching Bash call, once installed |
+| Destructive git actions in Codex | `~/.codex/hooks.json` PreToolUse + `hooks/git-guardrails.sh` | Deterministic after `/hooks` trusts the hook definition |
 | AI attribution in commits | `hooks/commit-msg` + `settings.json` | Deterministic — see [Attribution](#attribution), once installed |
 
 Hooks fire before any permission-mode check, so they hold even under
@@ -186,7 +201,7 @@ command, and it doesn't touch `Claude-Session:` at all — the hook catches both
 |---|---|
 | Cursor IDE | Settings → Git & PRs → Attribution off |
 | Cursor CLI | `~/.cursor/cli-config.json` → `attributeCommitsToAgent` / `attributePRsToAgent` false |
-| Codex | `~/.codex/config.toml` → `commit_attribution = ""` |
+| Codex | Use `hooks/commit-msg` through global `core.hooksPath`; older `commit_attribution = ""` settings may be ignored by current Codex versions |
 
 `hooks/commit-msg` still strips AI trailers (including `Made with Cursor`) on
 every commit when `core.hooksPath` points at `~/.claude/hooks`.
@@ -204,12 +219,14 @@ project's own hook instead.
 Claude Code has one global folder (`~/.claude/`) that every project shares —
 that's what the symlinks above plug into. **Codex** also has a global home
 (`~/.codex/`): symlink this repo's generated `AGENTS.md` there (install step
-6) so every Codex session gets the working agreement. **Cursor** reads
+6) so every Codex session gets the working agreement, and add
+`hooks/codex-hooks.json` to `~/.codex/hooks.json` so Codex runs the same
+`git-guardrails.sh` before Bash commands. **Cursor** reads
 `.cursor/rules/` from the open project; symlink or copy the generated
 `.cursor/rules/*.mdc` into projects that need them, or open this repo.
 
-Neither has Claude Code's skill-loading or hook mechanism either, so
-`skills/*/SKILL.md` and `hooks/*.sh` aren't usable there as-is.
+Neither has Claude Code's skill-loading mechanism, so
+`skills/*/SKILL.md` aren't usable there as-is.
 `scripts/generate-configs.sh` derives two self-contained, adapted configs from
 the same source (`CLAUDE.md`, `skills/`, `rules/`):
 
@@ -221,10 +238,9 @@ the same source (`CLAUDE.md`, `skills/`, `rules/`):
   path-scoped rules natively, converted from each source file's `paths:`
   frontmatter.
 
-Neither adapted file ports `hooks/git-guardrails.sh` or `hooks/commit-msg`:
-their checks only restate rules already present as prose in both files, and
-neither tool runs Bash hooks the way Claude Code does — so those rules are
-guidance there, not enforced (except `commit-msg` via global `core.hooksPath`).
+The adapted instruction files do not contain hook configuration. Codex gets the
+Bash guardrail from `hooks/codex-hooks.json`, and both Claude Code and Codex get
+the commit-message backstop from Git's global `core.hooksPath`.
 
 **`CLAUDE.md`, `skills/` and `rules/` are the source of truth.** Edit those,
 never `AGENTS.md` or `.cursor/rules/*.mdc` directly (each starts with a
