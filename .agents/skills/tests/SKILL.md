@@ -1,0 +1,47 @@
+---
+name: tests
+description: Apply the project's test conventions when creating or changing test files.
+---
+
+<!-- GENERATED FILE — do not edit directly. Source: CLAUDE.md, skills/, rules/. Regenerate with scripts/generate-configs.sh -->
+
+## Test conventions
+
+Loaded when working with test files. The obligation itself — a behavioral change
+ships with a test that fails without it — is in `CLAUDE.md` and applies whether
+or not this file is in context.
+
+### Writing them
+
+- **Names describe behavior, not methods.** `returns 400 when vendor document is
+  already registered`, not `test createVendor 2`. A failing test should name the
+  broken behavior in its output, without anyone opening the file.
+- **One assertion subject per test.** If a test can fail for three unrelated
+  reasons, it's three tests.
+- **Never assert on implementation** — internal call counts, private state,
+  execution order the contract doesn't guarantee. Those break on refactors that
+  changed nothing observable, and get deleted out of frustration.
+- **No test that can pass with the feature removed.** Before committing, delete
+  the implementation mentally: if the test still passes, it's testing nothing.
+
+### Coverage that's actually required
+
+- **Every branch of a fallback chain.** If the feature document lists a five-step
+  resolution order, there are five tests, plus one for the terminal fallback.
+- **Formulas**: the computation, its rounding boundary, and its unit. Silent unit
+  errors are the failure this catches.
+- **Negative cases**: the things that must *not* happen, confirmed not to.
+- **External contracts**: request and response shape, so a breaking change
+  surfaces at build time instead of in a consumer.
+
+### Placement and language
+
+Tests live beside the code they cover, following whatever layout the repo already
+uses. Don't introduce a second convention. Test names and descriptions are in
+English (Rule 0), like everything else in the repo.
+
+### Relationship to the PR
+
+The PR test plan records what was verified by hand, once. These tests are what
+verify it again next month. Both appear in the same PR; neither replaces the
+other.

@@ -17,7 +17,7 @@ below finish, and only then.
 
 ## Running it locally
 
-Do this once, on each computer where Claude Code is used.
+Do this once, on each computer where Claude Code or Codex is used.
 
 **1. Put this repo somewhere permanent.** Not a temp folder — if it's deleted
 or moved later, everything below breaks (the links point at this exact path).
@@ -64,11 +64,15 @@ next to whatever is already there.
 `~/.claude/`. Steps 2-4 only take effect in sessions that start after them.
 
 **6. Codex (optional, same machine).** Codex reads `~/.codex/AGENTS.md` for
-global guidance and can run lifecycle hooks from `~/.codex/hooks.json`:
+global guidance, discovers skills from `~/.agents/skills`, and can run lifecycle
+hooks from `~/.codex/hooks.json`:
 
 ```bash
 mkdir -p ~/.codex
 ln -sfn ~/dev/AI-TPA-Setup/AGENTS.md ~/.codex/AGENTS.md
+
+mkdir -p ~/.agents
+ln -sfn ~/dev/AI-TPA-Setup/.agents/skills ~/.agents/skills
 ```
 
 In `~/.codex/config.toml` (create if missing), enable hooks:
@@ -113,6 +117,9 @@ AI-TPA-Setup/
 │   ├── session-checkpoint/SKILL.md
 │   ├── feature-doc/SKILL.md
 │   └── project-readme/SKILL.md
+├── .agents/skills/              → ~/.agents/skills/ (Codex, loaded on demand)
+│   ├── tests/SKILL.md
+│   └── data-work/SKILL.md
 ├── hooks/
 │   ├── git-guardrails.sh         → ~/.claude/hooks/           (blocks risky git commands)
 │   ├── commit-msg                → strips AI attribution from every commit
@@ -225,13 +232,16 @@ that's what the symlinks above plug into. **Codex** also has a global home
 `.cursor/rules/` from the open project; symlink or copy the generated
 `.cursor/rules/*.mdc` into projects that need them, or open this repo.
 
-Neither has Claude Code's skill-loading mechanism, so
-`skills/*/SKILL.md` aren't usable there as-is.
-`scripts/generate-configs.sh` derives two self-contained, adapted configs from
-the same source (`CLAUDE.md`, `skills/`, `rules/`):
+Codex supports the same on-demand skill model through `~/.agents/skills`.
+`scripts/generate-configs.sh` derives adapted outputs from the same source
+(`CLAUDE.md`, `skills/`, `rules/`):
 
 - **`AGENTS.md`** — read by Codex from `~/.codex/AGENTS.md` (global) and from
-  a project root when present. Skill content is inlined as an appendix.
+  a project root when present. It contains only always-on rules, keeping the
+  repeated context small.
+- **`.agents/skills/`** — contains Codex skill bundles for the path-scoped
+  `tests` and `data-work` conventions. Codex sees their metadata and reads the
+  full `SKILL.md` only when relevant.
 - **`.cursor/rules/*.mdc`** — read automatically by Cursor. `working-agreement.mdc`
   is `alwaysApply: true` with the same inlined skill appendix; `tests.mdc` and
   `data-work.mdc` stay separate, glob-scoped files — Cursor supports
