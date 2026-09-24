@@ -259,7 +259,7 @@ wasn't tested stays visible as unchecked, with a reason.
 
 ## Appendix: on-demand conventions
 
-These were separate, on-demand skills in Claude Code. There is no skill-loading mechanism here, so follow them directly whenever the rules above point to them.
+These were separate, on-demand skills in Claude Code. Cursor has no skill-loading mechanism, so follow them directly whenever the rules above point to them.
 
 ## PR message
 
