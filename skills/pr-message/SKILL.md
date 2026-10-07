@@ -68,6 +68,14 @@ error output, and **do not fix it unless asked**.
 
 Both checks become test plan lines reflecting what was actually observed.
 
+## Notion card
+
+When the work came from a Notion card (picked up with the `notion-task` skill),
+the card's `To test` checklist is the starting point for the test plan: one
+line per item, checked only if it was exercised. Once the PR exists on GitHub,
+hand off to `notion-task` Phase 2 to link the PR on the card and close it. No
+card → skip this section.
+
 **Pushing is gated.** After resolving and building green, report the state and
 stop. `git push` happens only when the user says so.
 
