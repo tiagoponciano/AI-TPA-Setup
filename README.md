@@ -40,7 +40,7 @@ ln -sfn ~/dev/AI-TPA-Setup/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sfn ~/dev/AI-TPA-Setup/rules     ~/.claude/rules
 ln -sfn ~/dev/AI-TPA-Setup/skills    ~/.claude/skills
 ln -sfn ~/dev/AI-TPA-Setup/hooks     ~/.claude/hooks
-chmod +x ~/dev/AI-TPA-Setup/hooks/git-guardrails.sh ~/dev/AI-TPA-Setup/hooks/commit-msg
+chmod +x ~/dev/AI-TPA-Setup/hooks/git-guardrails.sh ~/dev/AI-TPA-Setup/hooks/commit-msg ~/dev/AI-TPA-Setup/hooks/pr-queue-check.sh
 ```
 
 **3. Turn on the commit hook globally.** A symlink alone isn't enough for
@@ -141,6 +141,7 @@ AI-TPA-Setup/
 ├── hooks/
 │   ├── git-guardrails.sh         → ~/.claude/hooks/           (blocks risky git commands)
 │   ├── commit-msg                → strips AI attribution from every commit
+│   ├── pr-queue-check.sh         → open PRs checked against each other before push / PR, and at session start
 │   └── codex-hooks.json          → ~/.codex/hooks.json        (Codex PreToolUse wrapper)
 ├── settings.json                 → merge (never symlink) into ~/.claude/settings.json
 ├── scripts/
@@ -175,6 +176,7 @@ install step — nothing here half-works; it's either linked or it isn't.
 | Destructive git actions in Claude Code | `settings.json` PreToolUse + `hooks/git-guardrails.sh` | Deterministic — runs before every matching Bash call, once installed |
 | Destructive git actions in Codex | `~/.codex/hooks.json` PreToolUse + `hooks/git-guardrails.sh` | Deterministic after `/hooks` trusts the hook definition |
 | AI attribution in commits | `hooks/commit-msg` + `settings.json` | Deterministic — see [Attribution](#attribution), once installed |
+| Conflicts across open PRs | `settings.json` PreToolUse + SessionStart + `hooks/pr-queue-check.sh` | Deterministic in Claude Code — blocks `git push` / `gh pr create` on a conflict with your own open PR, warns on others; needs `gh` signed in |
 
 Hooks fire before any permission-mode check, so they hold even under
 `--dangerously-skip-permissions`. They can only tighten restrictions, never
