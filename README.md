@@ -63,6 +63,19 @@ next to whatever is already there.
 **5. Restart Claude Code** (or open a new terminal tab) so it re-reads
 `~/.claude/`. Steps 2-4 only take effect in sessions that start after them.
 
+**5b. Notion (for the `notion-task` skill).** The skill reads and updates task
+cards through the Notion MCP server. Connect it once, for every project:
+
+```
+claude mcp add --transport http --scope user notion https://mcp.notion.com/mcp
+```
+
+Then run `/mcp` inside Claude Code and authenticate in the browser. Copy
+`skills/notion-task/notion-projects.example.md` to `notion-projects.md` in the
+same folder and set `default_root` — or let the skill create it on first use.
+That file is gitignored: it names clients and internal pages, and this repo is
+public.
+
 **6. Codex (optional, same machine).** Codex reads `~/.codex/AGENTS.md` for
 global guidance, discovers skills from `~/.agents/skills`, and can run lifecycle
 hooks from `~/.codex/hooks.json`:
@@ -116,7 +129,11 @@ AI-TPA-Setup/
 │   ├── pr-message/SKILL.md       → ~/.claude/skills/          (loaded on demand, e.g. "gera o PR")
 │   ├── session-checkpoint/SKILL.md
 │   ├── feature-doc/SKILL.md
-│   └── project-readme/SKILL.md
+│   ├── project-readme/SKILL.md
+│   └── notion-task/
+│       ├── SKILL.md              (picks up a Notion card, closes it with the PR)
+│       ├── notion-projects.example.md
+│       └── notion-projects.md    (local only, gitignored — repo → Notion project map)
 ├── .agents/skills/              → ~/.agents/skills/ (Codex, loaded on demand)
 │   ├── tests/SKILL.md
 │   └── data-work/SKILL.md
