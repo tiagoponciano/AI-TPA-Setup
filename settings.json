@@ -13,6 +13,30 @@
             "type": "command",
             "if": "Bash(git *)",
             "command": "$HOME/.claude/hooks/git-guardrails.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "$HOME/.claude/hooks/pr-queue-check.sh pretool",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "if": "Bash(gh pr create*)",
+            "command": "$HOME/.claude/hooks/pr-queue-check.sh pretool",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.claude/hooks/pr-queue-check.sh session",
+            "timeout": 30
           }
         ]
       }
