@@ -172,8 +172,14 @@ commits, **not from history** — if a real credential was pushed, rotate it.
 **Generate a PR description only when explicitly asked** ("gera o PR", "bora
 mergear", "ready to merge"). Never after a commit, never as a default.
 
-When asked, load the `pr-message` skill and follow it: conflict check, build and
-test verification, then the description.
+When asked, load the `pr-message` skill and follow it: conflict check against
+the base and against the other open PRs, build and test verification, then the
+description.
+
+Several PRs open at once can each merge clean against the base and still
+collide with each other. Whenever more than one PR is open on the same base,
+check them as a queue — load the `pr-queue` skill. It also runs on its own when
+the user asks whether their open PRs conflict.
 
 When the work came from a Notion card, the card is part of the PR: its test
 checklist feeds the test plan, and once the PR exists the card gets the link and
@@ -252,6 +258,7 @@ wasn't tested stays visible as unchecked, with a reason.
 | About to stage | Never `.env`, plans, or `STATUS.md` |
 | Forbidden file tracked | `git rm --cached` → `.gitignore` → rotate if real |
 | User asks for the PR | Load `pr-message` skill |
+| Several PRs open on the same base / "dá conflito?" | Load `pr-queue` skill — simulate the queue, propose a merge order |
 | PR open for a Notion card | Load `notion-task` skill — link the PR, move the card |
 | Plan step done / pause / risky op / "checkpoint" | Load `session-checkpoint` skill |
 | Any implementation | Update the feature doc, own commit — load `feature-doc` skill |
