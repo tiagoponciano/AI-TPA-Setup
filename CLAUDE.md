@@ -175,6 +175,11 @@ mergear", "ready to merge"). Never after a commit, never as a default.
 When asked, load the `pr-message` skill and follow it: conflict check, build and
 test verification, then the description.
 
+When the work came from a Notion card, the card is part of the PR: its test
+checklist feeds the test plan, and once the PR exists the card gets the link and
+moves to done. Load the `notion-task` skill for both ends — picking up the task
+and closing it.
+
 **Always, regardless of the skill:** never merge the PR, never push to the base
 branch, never rebase an open branch, and never `git push` without the user
 saying so.
@@ -240,12 +245,14 @@ wasn't tested stays visible as unchecked, with a reason.
 | Trigger | Action |
 |---|---|
 | Writing anything into the repo | English. Product language only for user-facing copy |
+| Starting work from a Notion card | Load `notion-task` skill — find the card, read the minutes, checklist |
 | Starting a feature | `git checkout <base>` → `git pull` → `git checkout -b @tpa/<type>/<desc>` |
 | Ready to commit | Stage explicit paths for one logical change → `type(scope): summary` |
 | Fixing a bug | Failing test first → fix → same PR |
 | About to stage | Never `.env`, plans, or `STATUS.md` |
 | Forbidden file tracked | `git rm --cached` → `.gitignore` → rotate if real |
 | User asks for the PR | Load `pr-message` skill |
+| PR open for a Notion card | Load `notion-task` skill — link the PR, move the card |
 | Plan step done / pause / risky op / "checkpoint" | Load `session-checkpoint` skill |
 | Any implementation | Update the feature doc, own commit — load `feature-doc` skill |
 | README missing, stale, or asked to improve | Load `project-readme` skill |
