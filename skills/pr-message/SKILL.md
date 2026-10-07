@@ -6,7 +6,7 @@ description: Run the pre-merge checks and write the pull request description for
 # PR message
 
 Produce a complete PR description covering the **full branch diff**, not just the
-last commit. Two checks run first, in order — a description for a branch that
+last commit. The checks run first, in order — a description for a branch that
 doesn't merge cleanly or doesn't build describes a state that can't ship.
 
 ## Check 1 — Conflicts against the base
@@ -49,6 +49,19 @@ git commit                # merge commit — an exception to Rule 2, like the in
 - If `merge-tree` isn't available (Git < 2.38), report that instead of falling
   back to a real merge with `--abort` afterwards.
 
+## Check 1b — The rest of the open PR queue
+
+A clean merge against the base says nothing about the other PRs open on it.
+Load the `pr-queue` skill and run it with this branch in the queue: overlap with
+every open PR on the same base, the queue simulated in sequence, and a proposed
+merge order.
+
+- Report its summary block as-is.
+- A conflict with one of the user's own PRs is **not** resolved here. Say which
+  PR goes first and that this branch (or the other) resolves after that one
+  merges. Put the merge order in the PR's `## Notes`.
+- A conflict with someone else's PR is reported, never acted on.
+
 ## Check 2 — Does it still build and pass?
 
 Run the project's verification command on the branch as it stands. **When a test
@@ -66,7 +79,9 @@ a passing check.
 Passes → one line, continue. Fails → report the failing command and the actual
 error output, and **do not fix it unless asked**.
 
-Both checks become test plan lines reflecting what was actually observed.
+Every check becomes a test plan line reflecting what was actually observed —
+including the queue: `- [x] Open PR queue on dev (#104, #105) → no conflict in
+sequence`.
 
 ## Notion card
 
