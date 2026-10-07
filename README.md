@@ -127,6 +127,7 @@ AI-TPA-Setup/
 │   └── data-work.md                                           (notebooks, SQL, pipelines)
 ├── skills/
 │   ├── pr-message/SKILL.md       → ~/.claude/skills/          (loaded on demand, e.g. "gera o PR")
+│   ├── pr-queue/SKILL.md         (open PRs checked against each other, merge order)
 │   ├── session-checkpoint/SKILL.md
 │   ├── feature-doc/SKILL.md
 │   ├── project-readme/SKILL.md
