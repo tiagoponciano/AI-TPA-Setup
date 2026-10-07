@@ -11,6 +11,24 @@ this: once the first PR lands, the rest are compared against a base that moved.
 This skill checks the queue as a whole — read-only, nothing is merged, pushed or
 checked out in the user's working tree.
 
+## The hook runs first
+
+`hooks/pr-queue-check.sh` does the conflict part deterministically, without
+anyone asking:
+
+- **Before `git push` and `gh pr create`** on a feature branch: every other open
+  PR on the base is merged in sequence, then this branch on top. A conflict with
+  one of the user's own PRs blocks the command; a conflict only with someone
+  else's PR lets it through with a warning.
+- **At session start**: lists the user's open PRs that no longer merge clean,
+  against the base or once the PRs ahead of them land.
+
+When the hook blocks or warns, this skill is the follow-up: explain the
+conflict, propose the order, and say who resolves what. If the user decides to
+push anyway, write the `HEAD` SHA to `.git/pr-queue-ack` as the block message
+says — only on the user's explicit word, never on your own. The hook does not
+build the combined state; step 5 below still does.
+
 ## 1. List the queue
 
 ```bash
