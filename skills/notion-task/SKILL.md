@@ -1,6 +1,6 @@
 ---
 name: notion-task
-description: Pick up a task from its Notion card and close it when the PR is up. Use when the user starts work, with or without naming the card ("pega a task X", "qual minha próxima task?", "bora trabalhar", "/notion-task"), and from the pr-message skill once the PR exists. Requires the Notion MCP server.
+description: Link a repository to its Notion project and run its task cards end to end. Use whenever the user mentions Notion in the context of this repository — linking or saving which Notion page or project the repo belongs to, asking which card or task to work on, starting work on a card, reading the sprint or meeting minutes, or updating, moving or closing a card — and from the pr-message skill once the PR exists. Requires the Notion MCP server.
 ---
 
 # Notion task
@@ -32,6 +32,11 @@ pages). Format in `notion-projects.example.md`.
    comes back for this repo. Fill in the minutes database once Phase 1 finds
    it (step 3), so later runs go straight to it. Ask whether this repo is
    `BE`, `FE` or something else if it isn't obvious from the code.
+
+When the user only asked to link or save the Notion page for this repo, stop
+here: confirm the row that was written and don't start Phase 1. A link the user
+pastes is the project page — use it directly instead of searching. Never save
+the link anywhere else (project memory, `STATUS.md`, the repo).
 
 ## Phase 1 — Start
 
