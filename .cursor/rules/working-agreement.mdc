@@ -870,7 +870,9 @@ it, or said to open it). No PR URL → nothing to close.
    `## Plan`. Paste the bare PR URL on its own line so Notion renders the GitHub
    preview.
 3. **Tick the card's checklist** to match the PR test plan.
-4. **Move the card to the done status.**
+4. **Set the card's status by repo owner.** NEO repos (`neo-empresarial/*`):
+   keep it in the in-progress status — a coworker still has to review and
+   merge. The user's personal repos: move it to the done status.
 5. One line in chat: card moved, links added.
 
 A task that spans BE and FE is closed by the second PR. After the first one,
