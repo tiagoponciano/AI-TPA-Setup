@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Issue"
+  short_description: "Turn screenshots into actionable GitHub issues"
+  default_prompt: "Use $github-issue to turn these screenshots and notes into a GitHub issue with acceptance criteria and related issues."
