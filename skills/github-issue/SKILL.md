@@ -1,6 +1,6 @@
 ---
 name: github-issue
-description: Draft or create actionable GitHub issues from screenshots, bug reports, and UI improvement descriptions, with visual evidence, acceptance criteria, and verified related issues. Use when turning user observations into issues; not for implementing fixes or writing pull requests.
+description: Draft or create actionable GitHub issues from screenshots, bug reports, and UI improvement descriptions, with visual evidence, acceptance criteria, and verified related issues. Use when turning user observations into issues ("cria uma issue", "abre uma issue disso", "olha esse print", "write an issue for this"); not for implementing fixes or writing pull requests.
 ---
 
 # GitHub Issue
