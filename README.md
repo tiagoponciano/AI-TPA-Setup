@@ -128,6 +128,7 @@ AI-TPA-Setup/
 ├── skills/
 │   ├── pr-message/SKILL.md       → ~/.claude/skills/          (loaded on demand, e.g. "gera o PR")
 │   ├── pr-queue/SKILL.md         (open PRs checked against each other, merge order)
+│   ├── github-issue/SKILL.md     (screenshots and notes → actionable GitHub issues)
 │   ├── session-checkpoint/SKILL.md
 │   ├── feature-doc/SKILL.md
 │   ├── project-readme/SKILL.md
@@ -154,6 +155,11 @@ AI-TPA-Setup/
 ```
 
 ## Common tasks
+
+Use `github-issue` to turn screenshots and descriptions into issue drafts or
+published GitHub issues, including current/proposed comparisons and related
+issues. See [GitHub issue creation](skills/github-issue/docs/github-issue.md)
+for behavior and tool requirements.
 
 | Command | Checks |
 |---|---|

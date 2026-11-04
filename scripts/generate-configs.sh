@@ -106,15 +106,16 @@ FEATURE_DOC_APPENDIX=$(strip_frontmatter skills/feature-doc/SKILL.md | demote_he
 PROJECT_README_APPENDIX=$(strip_frontmatter skills/project-readme/SKILL.md | demote_headings)
 NOTION_TASK_APPENDIX=$(strip_frontmatter skills/notion-task/SKILL.md | demote_headings)
 PR_QUEUE_APPENDIX=$(strip_frontmatter skills/pr-queue/SKILL.md | demote_headings)
+GITHUB_ISSUE_APPENDIX=$(strip_frontmatter skills/github-issue/SKILL.md | demote_headings)
 TESTS_BODY=$(strip_frontmatter rules/tests.md | demote_headings)
 DATA_WORK_BODY=$(strip_frontmatter rules/data-work.md | demote_headings)
 
 # NOTE: built with printf, not a `cat <<EOF` inside $(...) — bash's parser
 # mishandles apostrophes in a heredoc nested inside command substitution.
-APPENDIX=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s' \
+APPENDIX=$(printf '%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n\n%s' \
   "## Appendix: on-demand conventions" \
   "These were separate, on-demand skills in Claude Code. Cursor has no skill-loading mechanism, so follow them directly whenever the rules above point to them." \
-  "$PR_MESSAGE_APPENDIX" "$SESSION_CHECKPOINT_APPENDIX" "$FEATURE_DOC_APPENDIX" "$PROJECT_README_APPENDIX" "$NOTION_TASK_APPENDIX" "$PR_QUEUE_APPENDIX")
+  "$PR_MESSAGE_APPENDIX" "$SESSION_CHECKPOINT_APPENDIX" "$FEATURE_DOC_APPENDIX" "$PROJECT_README_APPENDIX" "$NOTION_TASK_APPENDIX" "$PR_QUEUE_APPENDIX" "$GITHUB_ISSUE_APPENDIX")
 
 # --- AGENTS.md (Codex) ------------------------------------------------------
 # Codex loads skill metadata from ~/.agents/skills and reads a selected
@@ -139,7 +140,7 @@ EOF
 
 mkdir -p .agents/skills/tests .agents/skills/data-work
 
-for skill in feature-doc notion-task pr-message pr-queue project-readme session-checkpoint; do
+for skill in feature-doc github-issue notion-task pr-message pr-queue project-readme session-checkpoint; do
   ln -sfn "../../skills/${skill}" ".agents/skills/${skill}"
 done
 
