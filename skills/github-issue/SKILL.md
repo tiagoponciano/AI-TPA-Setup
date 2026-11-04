@@ -40,6 +40,14 @@ such as "bottom-right" replaces an earlier position everywhere in the issue
 and design reference. Do not turn one task's layout choice into a default for
 other tasks.
 
+## Check screenshots for sensitive data
+
+Before any screenshot leaves the machine, look for tokens, API keys, e-mail
+addresses, customer data, internal URLs, and anything else that should not be
+public. Check the target repository's visibility first. If something sensitive
+is visible, say what and where, and ask whether to crop or redact it. Never
+upload or embed the image until that is resolved.
+
 ## Prepare visual evidence when requested
 
 - Preserve the original screenshot as current-state evidence. Do not present
