@@ -60,11 +60,12 @@ upload or embed the image until that is resolved.
 - Label the images **Current** and **Proposed**. Explain the intended change
   in text, so the requirement remains understandable without the images.
 - Embed actual, accessible attachment URLs, with descriptive alt text. Local
-  paths and temporary preview links are not GitHub attachments. Use a supported
-  upload mechanism when available; do not invent an upload API or asset URL.
-  If uploading is unavailable and images are required, prepare the full draft
-  and request the attachments or durable URLs before publishing. Do not commit
-  screenshots to the repository merely to obtain URLs.
+  paths and temporary preview links are not GitHub attachments. `gh` cannot
+  upload images, so the options are, in order: attach through the GitHub web
+  editor with the browser tools (drag or file-upload into the issue body, then
+  read back the `user-attachments` URL), or finish the draft and ask the user
+  to paste the images into the issue. Do not invent an upload API or asset URL.
+  Do not commit screenshots to the repository merely to obtain URLs.
 
 ## Find related work
 
@@ -132,7 +133,16 @@ the issue text defines the behavior.
 For drafts, return a copyable title and Markdown body. For publication, use the
 available GitHub connector, or an authenticated CLI if the connector lacks the
 needed capability. Preserve multiline bodies exactly; with a CLI, prefer a
-temporary body file over shell-interpolated text. Ask for missing required
+temporary body file over shell-interpolated text:
+
+```bash
+gh issue list --repo OWNER/REPO --state all --search "<keywords>"
+gh issue view 123 --repo OWNER/REPO
+gh issue create --repo OWNER/REPO --title "<title>" --body-file <body.md>
+gh issue edit 123 --repo OWNER/REPO --body-file <body.md>
+```
+
+Write the body file to the scratchpad, never into the repository. Ask for missing required
 fields or permissions only when they block the authorized action. Apply labels,
 assignees, milestones, and project membership only when requested or required
 by the repository's established workflow; never invent their values.
