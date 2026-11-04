@@ -22,7 +22,8 @@ generator, credentials, screenshots, or a repository-specific issue template.
 | Corrected placement or design constraint | Apply the latest correction to both prose and proposed visual |
 | Complementary issue | Verify the reference and explain the shared requirement |
 | Apparent duplicate | Resolve whether to update or create before writing externally |
-| Required images have only local paths and no upload capability | Prepare the draft and request attachments or durable URLs |
+| Required images have only local paths | Attach through the GitHub web editor with browser tools, or finish the draft and ask the user to paste the images |
+| Sensitive data visible in a screenshot | Name it and ask whether to crop or redact; do not upload until resolved |
 | Uncertain create result | Search for the issue before attempting another creation |
 
 Repository instructions and templates govern issue language and structure.
@@ -38,11 +39,9 @@ Generated designs are proposals, never evidence of the running application.
 ## Gotchas
 
 - Local images fail to render on GitHub: filesystem paths are not attachment
-  URLs. Upload through a supported mechanism or obtain durable URLs.
+  URLs, and `gh` cannot upload images.
 - A proposal disagrees with a correction: generated visuals can preserve an
   earlier placement. Inspect the image and correct it before publishing.
-- A new skill is absent from Codex's linked source: the generator uses an
-  explicit skill list. Include `github-issue` there and regenerate.
 
 ## Setup
 
@@ -55,16 +54,3 @@ the runtime instructions in Cursor's generated working agreement. The optional
 Publishing requires a GitHub connector or authenticated CLI with access to the
 target repository. Image generation and attachment uploads require available
 tools supporting those operations. Drafting can proceed without them.
-
-To build a portable archive from the repository root, write only the skill
-bundle to an output location, then test the archive:
-
-```bash
-python3 -m zipfile -c /tmp/github-issue-skill.zip skills/github-issue
-python3 -m zipfile -t /tmp/github-issue-skill.zip
-```
-
-For distribution, use `github-issue/` as the archive's top-level directory
-rather than the repository's `skills/` parent. The archive contains the runtime
-instructions, interface metadata, and this feature documentation. Generated
-configuration files, session notes, and local screenshots are excluded.
