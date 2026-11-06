@@ -25,6 +25,18 @@
             "if": "Bash(gh pr create*)",
             "command": "$HOME/.claude/hooks/pr-queue-check.sh pretool",
             "timeout": 60
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "$HOME/.claude/hooks/pr-size-check.sh",
+            "timeout": 60
+          },
+          {
+            "type": "command",
+            "if": "Bash(gh pr create*)",
+            "command": "$HOME/.claude/hooks/pr-size-check.sh",
+            "timeout": 60
           }
         ]
       }
