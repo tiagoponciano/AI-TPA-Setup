@@ -1,0 +1,6 @@
+# Output of scripts/generate-configs.sh: excluded from the PR size limit (Rule 8)
+# and collapsed in GitHub diffs.
+AGENTS.md linguist-generated
+.cursor/rules/*.mdc linguist-generated
+.agents/skills/tests/SKILL.md linguist-generated
+.agents/skills/data-work/SKILL.md linguist-generated

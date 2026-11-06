@@ -174,7 +174,7 @@ mkdir -p .cursor/rules
 
 cat > .cursor/rules/working-agreement.mdc <<EOF
 ---
-description: Working agreement — Karpathy behavioral guidelines and Rules 0-7 for git, commits, PRs, checkpoints, docs and tests
+description: Working agreement — Karpathy behavioral guidelines and Rules 0-8 for git, commits, PRs, checkpoints, docs, tests and PR size
 alwaysApply: true
 ---
 

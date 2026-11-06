@@ -10,6 +10,12 @@
             "command": "bash \"$HOME/.claude/hooks/git-guardrails.sh\"",
             "timeout": 30,
             "statusMessage": "Checking Git guardrails"
+          },
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/pr-size-check.sh\"",
+            "timeout": 60,
+            "statusMessage": "Checking PR size"
           }
         ]
       }

@@ -242,6 +242,28 @@ when working with notebooks, SQL and pipelines.
 
 ---
 
+## Rule 8 — Pull request size
+
+**A PR ships one feature and changes at most 500 lines.** The count is additions
+plus deletions against the base, excluding generated files (lockfiles, snapshots,
+paths marked `linguist-generated`). Tests and docs count, because they need review
+too. Never cut them to fit: split the PR.
+
+Estimate before coding. If the work won't fit, propose the slices first and ship
+them as small PRs. Each slice must make sense alone, build, pass its tests and be
+revertable on its own; unfinished behavior stays behind a flag or an unexposed
+route. A slice that depends on another starts from the synced base after that one
+merges. Slices that don't can be open at once.
+
+Measure with `~/.claude/hooks/pr-size-check.sh count origin/<base>`. Past 400
+lines, tell the user and agree on the split before continuing.
+
+Going over needs the user's explicit approval for that branch and a reason in the
+PR's `## Notes`. `hooks/pr-size-check.sh` blocks `git push` and `gh pr create`
+until then.
+
+---
+
 ## No fabrication
 
 Applies to the PR test plan, `STATUS.md`, and feature documentation alike:
@@ -263,6 +285,7 @@ wasn't tested stays visible as unchecked, with a reason.
 | Fixing a bug | Failing test first → fix → same PR |
 | About to stage | Never `.env`, plans, or `STATUS.md` |
 | Forbidden file tracked | `git rm --cached` → `.gitignore` → rotate if real |
+| Starting work, or a branch past 400 lines | Estimate against the 500-line limit, propose slices — Rule 8 |
 | User asks for the PR | Use the `pr-message` skill |
 | Several PRs open on the same base / "dá conflito?" | Use the `pr-queue` skill — simulate the queue, propose a merge order |
 | PR open for a Notion card | Use the `notion-task` skill — link the PR, move the card |
