@@ -40,7 +40,7 @@ ln -sfn ~/dev/AI-TPA-Setup/CLAUDE.md ~/.claude/CLAUDE.md
 ln -sfn ~/dev/AI-TPA-Setup/rules     ~/.claude/rules
 ln -sfn ~/dev/AI-TPA-Setup/skills    ~/.claude/skills
 ln -sfn ~/dev/AI-TPA-Setup/hooks     ~/.claude/hooks
-chmod +x ~/dev/AI-TPA-Setup/hooks/git-guardrails.sh ~/dev/AI-TPA-Setup/hooks/commit-msg ~/dev/AI-TPA-Setup/hooks/pr-queue-check.sh
+chmod +x ~/dev/AI-TPA-Setup/hooks/git-guardrails.sh ~/dev/AI-TPA-Setup/hooks/commit-msg ~/dev/AI-TPA-Setup/hooks/pr-queue-check.sh ~/dev/AI-TPA-Setup/hooks/pr-size-check.sh
 ```
 
 **3. Turn on the commit hook globally.** A symlink alone isn't enough for
@@ -143,6 +143,9 @@ AI-TPA-Setup/
 │   ├── git-guardrails.sh         → ~/.claude/hooks/           (blocks risky git commands)
 │   ├── commit-msg                → strips AI attribution from every commit
 │   ├── pr-queue-check.sh         → open PRs checked against each other before push / PR, and at session start
+│   ├── pr-size-check.sh          → blocks push / PR over 500 changed lines
+│   ├── pr-size-check.test.sh     (its tests)
+│   ├── docs/pr-size-check.md     (what counts, base resolution, approval)
 │   └── codex-hooks.json          → ~/.codex/hooks.json        (Codex PreToolUse wrapper)
 ├── settings.json                 → merge (never symlink) into ~/.claude/settings.json
 ├── scripts/
@@ -169,6 +172,8 @@ for behavior and tool requirements.
 | `git config --get core.hooksPath` | expect `/Users/<you>/.claude/hooks` |
 | `/hooks` in Codex | `git-guardrails` registered and trusted under PreToolUse |
 | `echo '{"tool_input":{"command":"git add ."},"cwd":"'"$PWD"'"}' \| ~/.claude/hooks/git-guardrails.sh; echo $?` | expect `2` — the guardrail blocked it |
+| `~/.claude/hooks/pr-size-check.sh count origin/<base>` | lines the current branch counts toward the 500-line limit |
+| `hooks/pr-size-check.test.sh` | runs the PR size hook's tests |
 | `./scripts/generate-configs.sh` | regenerates `AGENTS.md` and `.cursor/rules/*.mdc` after editing `CLAUDE.md`, `skills/` or `rules/` |
 
 If any of the checks above come back empty or wrong, go back to the matching
@@ -183,6 +188,7 @@ install step — nothing here half-works; it's either linked or it isn't.
 | Destructive git actions in Codex | `~/.codex/hooks.json` PreToolUse + `hooks/git-guardrails.sh` | Deterministic after `/hooks` trusts the hook definition |
 | AI attribution in commits | `hooks/commit-msg` + `settings.json` | Deterministic — see [Attribution](#attribution), once installed |
 | Conflicts across open PRs | `settings.json` PreToolUse + SessionStart + `hooks/pr-queue-check.sh` | Deterministic in Claude Code — blocks `git push` / `gh pr create` on a conflict with your own open PR, warns on others; needs `gh` signed in |
+| PR size | `settings.json` or `~/.codex/hooks.json` PreToolUse + `hooks/pr-size-check.sh` | Deterministic for agents in Claude Code and Codex, once installed — blocks `git push` / `gh pr create` over 500 changed lines. Pushes typed in a terminal and Cursor aren't covered. See [PR size check](hooks/docs/pr-size-check.md) |
 
 Hooks fire before any permission-mode check, so they hold even under
 `--dangerously-skip-permissions`. They can only tighten restrictions, never
@@ -281,7 +287,7 @@ Codex supports the same on-demand skill model through `~/.agents/skills`.
   frontmatter.
 
 The adapted instruction files do not contain hook configuration. Codex gets the
-Bash guardrail from `hooks/codex-hooks.json`, and both Claude Code and Codex get
+Bash guardrail and the PR size check from `hooks/codex-hooks.json`, and both Claude Code and Codex get
 the commit-message backstop from Git's global `core.hooksPath`.
 
 **`CLAUDE.md`, `skills/` and `rules/` are the source of truth.** Edit those,
