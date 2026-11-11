@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# pr-size-check.sh — deterministic half of Rule 8 (one feature, at most 500 lines).
+# pr-size-check.sh — deterministic half of Rule 8 (one deliverable, ~500 lines of code).
 #
 #   pretool      (PreToolUse, Bash)  before `git push` / `gh pr create` on a feature
-#                branch: measure the branch against its base. Over the limit →
-#                blocked, unless the user approved this exact commit.
+#                branch: measure the branch against its base. Over the guideline →
+#                stopped once per commit so the agent reads the warning; the same
+#                command goes through on retry.
 #   count <ref>  print the lines the current branch changes against <ref>.
 #
 # Read-only apart from `git fetch`. See hooks/docs/pr-size-check.md.
@@ -12,9 +13,11 @@ set -uo pipefail
 
 LIMIT=500
 GENERATED='(^|/)(pnpm-lock\.yaml|package-lock\.json|yarn\.lock|poetry\.lock|uv\.lock|Gemfile\.lock|Cargo\.lock)$|\.snap$'
+# Documentation and tests: reviewed, but not what makes a PR hard to review.
+DOCS_AND_TESTS='(^|/)(docs?|tests?|__tests__|specs?)/|\.mdx?$|\.(test|spec)\.[^/]+$|(^|/)test_[^/]*\.py$|_test\.(go|py|sh)$'
 
 # count_lines <base-ref> → additions + deletions on this branch since it left the
-# base, skipping binaries, known generated files and linguist-generated paths.
+# base, skipping binaries, generated files, linguist-generated paths, docs and tests.
 count_lines() {
   local add del path total=0
   cd "$(git rev-parse --show-toplevel)" || return 1   # numstat paths are root-relative
@@ -24,7 +27,7 @@ count_lines() {
       read -r -d '' path
     fi
     [ "$add" = "-" ] && continue      # binary
-    printf '%s' "$path" | grep -Eq "$GENERATED" && continue
+    printf '%s' "$path" | grep -Eq "$GENERATED|$DOCS_AND_TESTS" && continue
     case "$(git check-attr linguist-generated -- "$path")" in
       *': set'|*': true') continue ;;
     esac
@@ -69,12 +72,13 @@ LINES=$(count_lines "origin/$BASE") || exit 0
 [ "$LINES" -le "$LIMIT" ] && exit 0
 
 HEAD_SHA=$(git rev-parse HEAD)
-ACK="$(git rev-parse --absolute-git-dir)/pr-size-ack"
-[ "$(cat "$ACK" 2>/dev/null)" = "$HEAD_SHA" ] && exit 0
+SEEN="$(git rev-parse --absolute-git-dir)/pr-size-seen"
+[ "$(cat "$SEEN" 2>/dev/null)" = "$HEAD_SHA" ] && exit 0
+printf '%s\n' "$HEAD_SHA" > "$SEEN"
 
 {
-  printf 'Blocked (Rule 8): %s changes %d lines against origin/%s; the limit is %d.\n' "$BRANCH" "$LINES" "$BASE" "$LIMIT"
-  printf 'Tests and docs count. Report this to the user and propose how to split it into smaller PRs, each shipping one feature.\n'
-  printf 'Only if the user explicitly approves this size: echo %s > %s, then retry, and state the reason in the PR Notes.\n' "$HEAD_SHA" "$ACK"
+  printf 'Rule 8 guideline: %s changes %d lines of code against origin/%s (docs and tests excluded); the guide is %d.\n' "$BRANCH" "$LINES" "$BASE" "$LIMIT"
+  printf 'Size alone does not block. Check what this PR delivers: if it is one complete change that cannot ship smaller, run the same command again and state why in the PR Notes.\n'
+  printf 'If it bundles separate deliverables, tell the user how you would split it by what each PR delivers, not by layer.\n'
 } >&2
 exit 2

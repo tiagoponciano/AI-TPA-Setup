@@ -84,9 +84,17 @@ check 'blocks a push chained after another command' 2 "$STATUS"
 
 # --- What counts -------------------------------------------------------------
 
-new_repo; commit_lines src.ts 400; commit_lines src.test.ts 100; commit_lines docs/f.md 1
+new_repo; commit_lines src.ts 400; commit_lines src.test.ts 300; commit_lines docs/f.md 300
 run_hook 'git push'
-check 'counts tests and docs toward the limit' 2 "$STATUS"
+check 'does not count tests and docs toward the limit' 0 "$STATUS"
+
+for path in a.test.ts a.spec.js tests/a.ts test/a.ts __tests__/a.ts spec/a.rb docs/a.txt a.md a.mdx test_a.py a_test.go a.test.sh nested/docs/a.txt; do
+  new_repo; commit_lines "$path" 600; run_hook 'git push'
+  check "excludes $path" 0 "$STATUS"
+done
+
+new_repo; commit_lines contest.ts 600; run_hook 'git push'
+check 'still counts a source file whose name merely contains test' 2 "$STATUS"
 
 new_repo
 git checkout -q main; commit_lines big.txt 300; git push -q origin main
@@ -179,16 +187,23 @@ check "uses --base over the open PR's base" 0 "$STATUS"
 new_repo; commit_lines a.txt 501; run_hook 'gh pr create --base nope --title x'
 check 'allows the command when the base ref does not exist' 0 "$STATUS"
 
-# --- Approval ----------------------------------------------------------------
+# --- Warn once per commit ----------------------------------------------------
 
-new_repo; commit_lines a.txt 501
-git rev-parse HEAD > .git/pr-size-ack; run_hook 'git push'
-check 'allows an oversized push approved for this commit' 0 "$STATUS"
+new_repo; commit_lines a.txt 501; run_hook 'git push'
+run_hook 'git push'
+check 'lets the same command through on retry' 0 "$STATUS"
 
-new_repo; commit_lines a.txt 501
-git rev-parse HEAD > .git/pr-size-ack
+new_repo; commit_lines a.txt 501; run_hook 'gh pr create --title x'
+run_hook 'git push'
+check 'warns once per commit, whichever command comes first' 0 "$STATUS"
+
+new_repo; commit_lines a.txt 501; run_hook 'git push'
 commit_lines b.txt 1; run_hook 'git push'
-check 'blocks again once a commit lands after the approval' 2 "$STATUS"
+check 'warns again once a commit lands after the warning' 2 "$STATUS"
+
+new_repo; commit_lines a.txt 501; run_hook 'git push'
+case "$STDERR" in *"run the same command again"*) r=yes ;; *) r=no ;; esac
+check 'warning tells the agent how to proceed' yes "$r"
 
 # --- Commands and states it leaves alone -------------------------------------
 
