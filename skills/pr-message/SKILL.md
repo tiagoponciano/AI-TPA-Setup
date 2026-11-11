@@ -9,25 +9,27 @@ Produce a complete PR description covering the **full branch diff**, not just th
 last commit. The checks run first, in order — a description for a branch that
 doesn't merge cleanly or doesn't build describes a state that can't ship.
 
-## Check 0 — One feature, at most 500 lines
+## Check 0 — One deliverable, about 500 lines
 
 ```bash
 git fetch origin
 ~/.claude/hooks/pr-size-check.sh count origin/dev    # or origin/main — the actual base
 ```
 
-Rule 8 sets the limit and what counts. Read the branch's commits as well: the
-number can't tell whether they ship one feature.
+Rule 8 sets the guide and what counts: code only, docs and tests excluded. Read
+the branch's commits as well: the number can't tell whether they deliver one
+complete change.
 
-Within the limit and one feature → say so in one line with the count, continue to
-check 1.
+One deliverable, near or under the guide → say so in one line with the count,
+continue to check 1.
 
-Over the limit, or more than one feature → **stop before writing the description.**
-Report the count and propose the split: what goes in each PR, in what order, and
-which depends on which.
+Bundles separate deliverables → **stop before writing the description.** Report
+the count and propose the split by what each PR delivers, in what order, and
+which depends on which. Don't propose layer-by-layer slices that can't ship alone.
 
-The user can approve the size for this branch. Only then write the commit SHA the
-hook's block message names to its approval file, and state the reason in `## Notes`.
+One deliverable that is simply bigger than the guide → continue, and state in
+`## Notes` why it could not ship smaller. The hook stops the first push of a
+commit once; the same command goes through on retry.
 
 ## Check 1 — Conflicts against the base
 

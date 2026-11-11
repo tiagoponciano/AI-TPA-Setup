@@ -243,23 +243,32 @@ Detailed conventions load automatically when working with test files
 
 ## Rule 8 — Pull request size
 
-**A PR ships one feature and changes at most 500 lines.** The count is additions
-plus deletions against the base, excluding generated files (lockfiles, snapshots,
-paths marked `linguist-generated`). Tests and docs count, because they need review
-too. Never cut them to fit: split the PR.
+**A PR delivers one complete change, and about 500 lines of code is the guide.**
+The number is a compass, not a hard rule: a PR a little over that is fine when
+it cannot ship smaller, and a PR under it is not fine when it bundles unrelated
+deliverables. The count is additions plus deletions against the base, excluding
+documentation (`*.md`, `docs/`), tests, and generated files (lockfiles,
+snapshots, paths marked `linguist-generated`). Docs and tests never justify a
+split.
 
-Estimate before coding. If the work won't fit, propose the slices first and ship
-them as small PRs. Each slice must make sense alone, build, pass its tests and be
-revertable on its own; unfinished behavior stays behind a flag or an unexposed
-route. A slice that depends on another starts from the synced base after that one
-merges. Slices that don't can be open at once.
+**Slice by what gets delivered, not by layer.** Start from the final
+functionality the work must deliver, then cut it into the smallest pieces that
+each deliver something on their own. Never cut it into a stack of PRs that only
+make sense together (model, then service, then controller, then screen): a
+reviewer can't judge one without the others, and none can ship alone. Each slice
+must make sense alone, build, pass its tests and be revertable on its own;
+unfinished behavior stays behind a flag or an unexposed route. A slice that
+depends on another starts from the synced base after that one merges. Slices that
+don't can be open at once.
 
-Measure with `~/.claude/hooks/pr-size-check.sh count origin/<base>`. Past 400
-lines, tell the user and agree on the split before continuing.
+Estimate before coding. If the work looks well past the guide, propose the slices
+first and agree on them with the user.
 
-Going over needs the user's explicit approval for that branch and a reason in the
-PR's `## Notes`. `hooks/pr-size-check.sh` blocks `git push` and `gh pr create`
-until then.
+Measure with `~/.claude/hooks/pr-size-check.sh count origin/<base>`. Over the
+guide, `hooks/pr-size-check.sh` stops `git push` and `gh pr create` once per
+commit so the size gets looked at: either it bundles separate deliverables and
+gets split, or it is one change and the reason goes in the PR's `## Notes`. The
+same command then goes through.
 
 ---
 
@@ -284,7 +293,7 @@ wasn't tested stays visible as unchecked, with a reason.
 | Fixing a bug | Failing test first → fix → same PR |
 | About to stage | Never `.env`, plans, or `STATUS.md` |
 | Forbidden file tracked | `git rm --cached` → `.gitignore` → rotate if real |
-| Starting work, or a branch past 400 lines | Estimate against the 500-line limit, propose slices — Rule 8 |
+| Starting work, or a branch well past 500 lines of code | Slice by deliverable, not by layer; propose the slices — Rule 8 |
 | User asks for the PR | Load `pr-message` skill |
 | Several PRs open on the same base / "dá conflito?" | Load `pr-queue` skill — simulate the queue, propose a merge order |
 | PR open for a Notion card | Load `notion-task` skill — link the PR, move the card |
