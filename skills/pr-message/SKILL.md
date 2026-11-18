@@ -126,7 +126,13 @@ Two targets, in order: someone who reads only the Summary must know what changed
 and what it affects; someone who reads the whole thing must be able to predict
 what the app does without opening the diff.
 
+**Repo template first.** If the repo has `.github/pull_request_template.md`, use
+it as the skeleton and keep its repo-specific checklist. Add only the sections
+below that it lacks and the change calls for. Without one, use this template.
+
 ```markdown
+Ticket: <PROJ-123 | Notion link | Slack link>
+
 ## Summary
 <1-3 sentences: what the system does now that it didn't before. Then one bullet
 per behavioral change — not per file.>
@@ -134,23 +140,63 @@ per behavioral change — not per file.>
 * <behavioral change, one line>
 
 ## Why
-<conditional — the state before this PR and what was broken, missing or awkward.
-Omit when the Summary makes it obvious.>
+<The state before this PR and the problem or goal behind the change. 1-3
+sentences.>
 
 ## Behavior
 <One subsection per surface or flow touched. Decision logic as a numbered
 resolution list matching the code exactly, including the fallback. State what is
 NOT affected. Mechanics go in the feature doc — link, don't inline.>
 
+## Design decisions
+<The choices a reviewer should challenge: library, approach, trade-off.>
+
+## Data & Reproducibility
+<Dataset and version, seed, and the command or notebook that reproduces it.>
+
+## Results
+<Metric before/after on the same dataset and split. Row counts, schema changes.>
+
+## Screenshots
+<Before/after pairs, labeled with the state shown.>
+
+## Breaking changes
+<What breaks, who's affected, exact migration steps.>
+
 ## Test plan
 - [x] <scenario → observed outcome>
 - [ ] <not covered → why>
+
+## Notes
+<Scope boundaries, follow-ups, alternatives worth considering, branch
+dependencies, rollback, why the PR is larger than the guide.>
 ```
 
-Conditional sections, appended in this order when they apply: `## Screenshots`
-(UI only, before/after pairs labeled with the state shown); `## Breaking changes`
-(what breaks, who's affected, exact migration steps — one section, not two);
-`## Notes` (scope boundaries, follow-ups, branch dependencies, rollback).
+**Always present:** `Summary`, `Why`, `Test plan`. Everything else is
+conditional — omit it, never write "N/A". Keep the order above.
+
+| Section | Include when |
+|---|---|
+| `Ticket` | a ticket or card exists |
+| `Behavior` | there is decision logic, a fallback, a business rule or a formula |
+| `Design decisions` | a non-obvious choice was made (library, algorithm, trade-off) |
+| `Data & Reproducibility` | the PR touches a pipeline, notebook, model or ETL |
+| `Results` | it changes a metric, a pipeline's output or the output schema |
+| `Screenshots` | UI changes; in backend work only CLI output or a `terraform plan`, in `<details>` |
+| `Breaking changes` | it breaks a contract, schema, env var or API |
+| `Notes` | follow-ups, alternatives, a dependency on another PR, rollback, or a PR over the guide |
+
+### Ticket line
+
+One line above the Summary, only when a ticket exists.
+
+- **Jira:** the bare key (`PROJ-123`) when Jira is linked to GitHub, else the URL.
+- **Notion:** the card URL. `notion-task` handles the other direction.
+- **Slack:** the message link, and only when it is the sole source. Slack links
+  expire and reviewers may lack access, so the context lives in the Summary and
+  Why.
+- The ticket complements the description, never replaces it: the Summary must
+  stand without opening the link.
 
 ### Rules
 
@@ -162,7 +208,8 @@ Conditional sections, appended in this order when they apply: `## Screenshots`
   what stops a reviewer assuming regressions.
 - **Nothing is claimed that isn't in the diff.** Every route, field, flag and
   behavior mentioned must exist in the branch's changes. No performance claim
-  without a measurement, no coverage number not produced by a run.
+  without a measurement, no coverage number or `Results` metric not produced by
+  a run.
 - **Test plan is granular, one line per scenario**, written as `scenario →
   observed outcome`. Not "tested the submit flow" — one line per case actually
   exercised, including negative checks.
@@ -192,5 +239,5 @@ A briefing, not a spec. It scales with behavioral changes, not diff size.
 - **Test plan lines don't re-explain Behavior.**
 - Dependency pins and build tooling belong in the commit body, not Notes — unless
   they change how someone runs the project.
-- Past ~80 lines, the excess is almost always implementation detail. Move it to
+- Past ~50 lines, the excess is almost always implementation detail. Move it to
   the feature doc, link to it.
