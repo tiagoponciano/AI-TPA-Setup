@@ -460,7 +460,7 @@ NOT affected. Mechanics go in the feature doc — link, don't inline.>
 ## Design decisions
 <The choices a reviewer should challenge: library, approach, trade-off.>
 
-## Data & reproducibility
+## Data & Reproducibility
 <Dataset and version, seed, and the command or notebook that reproduces it.>
 
 ## Results
@@ -489,7 +489,7 @@ conditional — omit it, never write "N/A". Keep the order above.
 | `Ticket` | a ticket or card exists |
 | `Behavior` | there is decision logic, a fallback, a business rule or a formula |
 | `Design decisions` | a non-obvious choice was made (library, algorithm, trade-off) |
-| `Data & reproducibility` | the PR touches a pipeline, notebook, model or ETL |
+| `Data & Reproducibility` | the PR touches a pipeline, notebook, model or ETL |
 | `Results` | it changes a metric, a pipeline's output or the output schema |
 | `Screenshots` | UI changes; in backend work only CLI output or a `terraform plan`, in `<details>` |
 | `Breaking changes` | it breaks a contract, schema, env var or API |
