@@ -491,7 +491,7 @@ conditional — omit it, never write "N/A". Keep the order above.
 | `Design decisions` | a non-obvious choice was made (library, algorithm, trade-off) |
 | `Data & Reproducibility` | the PR touches a pipeline, notebook, model or ETL |
 | `Results` | it changes a metric, a pipeline's output or the output schema |
-| `Screenshots` | UI changes; in backend work only CLI output or a `terraform plan`, in `<details>` |
+| `Screenshots` | UI changes, captured by the agent when missing (see Screenshots below); in backend work only CLI output or a `terraform plan`, in `<details>` |
 | `Breaking changes` | it breaks a contract, schema, env var or API |
 | `Notes` | follow-ups, alternatives, a dependency on another PR, rollback, or a PR over the guide |
 
@@ -506,6 +506,29 @@ One line above the Summary, only when a ticket exists.
   Why.
 - The ticket complements the description, never replaces it: the Summary must
   stand without opening the link.
+
+#### Screenshots
+
+When the `Screenshots` section applies and the user hasn't supplied any, take
+them yourself. Don't ask for them and don't leave the section empty.
+
+1. **Run the app** with the `run` skill and reach each changed state. Use seed or
+   fixture data, never real customer data or anything with credentials on screen.
+2. **Capture** with the browser tool available (Claude in Chrome or the built-in
+   browser): one *after* shot per changed state. Add a *before* shot only when
+   the base branch looks visibly different — run it from a separate
+   `git worktree` of the base.
+3. **Insert them in the PR.** `gh` can't upload images, so attach them through
+   the PR page in the browser (paste or drag into the description editor) and
+   let GitHub host them. This needs the PR to exist: write the description with
+   the section first, then add the images once the user has opened the PR.
+4. **Never commit the images** to the repo (Rule 3) and never use a gist or a
+   third-party host.
+5. **Label each image** with the state it shows, as the template says.
+
+Can't run the app or no browser tool is available → say so, omit the images, and
+add `- [ ] Screenshots → <reason>` to the test plan. Never mock up or edit a
+screenshot to look like the real thing.
 
 #### Rules
 
